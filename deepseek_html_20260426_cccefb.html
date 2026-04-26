@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArteDelCantar · Agenda con calendario</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(145deg, #f6f2fc 0%, #ede7f5 100%);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            padding: 1.5rem;
+            color: #1e1a2f;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #2e2449, #5a3e7c, #8b6bae);
+            padding: 1.6rem 2rem;
+            color: white;
+        }
+        .header h1 { font-size: 1.9rem; display: flex; gap: 0.6rem; align-items: center; }
+        .nav-bar {
+            display: flex;
+            gap: 0.5rem;
+            background: #fff0f5cc;
+            padding: 0.7rem 2rem;
+            border-bottom: 1px solid #e2d4f0;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            background: transparent;
+            border: none;
+            font-weight: 600;
+            padding: 0.5rem 1.3rem;
+            border-radius: 40px;
+            cursor: pointer;
+            color: #3b2a4f;
+            transition: 0.2s;
+        }
+        .nav-btn.active { background: #684f9e; color: white; box-shadow: 0 5px 12px rgba(104,79,158,0.3); }
+        .content { padding: 2rem; }
+        .card { background: white; border-radius: 1.5rem; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 5px 15px rgba(0,0,0,0.03); border: 1px solid #ede5f8; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: 1.2rem; }
+        label { font-weight: 600; font-size: 0.85rem; color: #4a3a6e; }
+        input, select, textarea { width: 100%; padding: 0.7rem; border: 1.5px solid #e2d9f0; border-radius: 1rem; }
+        button { background: #684f9e; color: white; border: none; padding: 0.6rem 1.3rem; border-radius: 2rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        button.secondary { background: #cbbbe6; color: #2d1b44; }
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            background: #faf7ff;
+            border-radius: 1.5rem;
+            padding: 1rem;
+        }
+        .calendar-day-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 0.6rem;
+            background: #e9dffa;
+            border-radius: 1rem;
+        }
+        .calendar-day {
+            background: white;
+            border-radius: 1rem;
+            padding: 0.6rem;
+            min-height: 100px;
+            border: 1px solid #efeaFC;
+            transition: 0.1s;
+        }
+        .calendar-day.today { background: #fff3db; border: 2px solid #c9b2e0; }
+        .session-badge {
+            background: #e2d9ff;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            margin: 0.2rem 0;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .session-count { font-size: 0.7rem; margin-top: 0.3rem; color: #6b4e9e; }
+        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; border-radius: 2rem; max-width: 500px; width: 90%; padding: 1.5rem; }
+        .message { padding: 0.8rem 1rem; border-radius: 1rem; margin-bottom: 1rem; font-weight: 500; }
+        .error { background: #ffe6e6; color: #b33; }
+        .success { background: #e0f7e8; color: #1f7840; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th, td { padding: 0.7rem; border-bottom: 1px solid #eee; text-align: left; }
+        .badge { padding: 0.2rem 0.6rem; border-radius: 40px; font-size: 0.7rem; font-weight: 600; }
+        @media (max-width: 700px) { .calendar-day { min-height: 70px; } .calendar-day-header { font-size: 0.8rem; } .content { padding: 1rem; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🎤 ArteDelCantar · Agenda con Calendario</h1>
+        <p>Clases de canto planificadas por fecha y hora</p>
+    </div>
+    <div class="nav-bar">
+        <button class="nav-btn" data-view="alumno">📝 Alumno</button>
+        <button class="nav-btn" data-view="login">🔐 Profesor</button>
+    </div>
+    <div class="content" id="appContent"></div>
+</div>
+
+<script>
+    const API_URL = "REEMPLAZAR_CON_URL_DE_APPS_SCRIPT";
+    let currentView = "alumno";
+    let adminToken = sessionStorage.getItem("adminToken") || null;
+    let sessions = [];
+    let studentRequests = [];
+    let assignments = [];
+    let currentMonth = new Date();
+    
+    async function apiRequest(action, payload = {}, requireAuth = false) {
+        const body = { action, payload };
+        if (requireAuth && adminToken) body.token = adminToken;
+        const res = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || "Error");
+        return data.data;
+    }
+    
+    function showMessage(msg, isError = false) {
+        const container = document.getElementById("appContent");
+        const div = document.createElement("div");
+        div.className = `message ${isError ? "error" : "success"}`;
+        div.innerText = isError ? "⚠️ " + msg : "✅ " + msg;
+        container.prepend(div);
+        setTimeout(() => div.remove(), 5000);
+    }
+    
+    // ========== VISTA ALUMNO (igual que antes, se mantiene) ==========
+    async function renderAlumno() {
+        return `<div class="card"><h2>🎶 Solicita tu clase</h2><form id="studentForm"><div class="form-grid">
+            <div><label>Nombre completo *</label><input id="full_name" required></div>
+            <div><label>WhatsApp *</label><input id="whatsapp" required></div>
+            <div><label>Edad</label><input id="age" type="number"></div>
+            <div><label>Nivel vocal *</label><select id="vocal_level"><option>principiante</option><option>intermedio</option><option>avanzado</option></select></div>
+            <div><label>Objetivo *</label><select id="goal"><option>aprender desde cero</option><option>mejorar técnica</option><option>preparar canción</option><option>otro</option></select></div>
+            <div><label>Días disponibles *</label><select id="available_weekdays" multiple size="4"><option>lunes</option><option>martes</option><option>miércoles</option><option>jueves</option><option>viernes</option><option>sábado</option><option>domingo</option></select><small>Ctrl+clic</small></div>
+            <div><label>Bloques horarios *</label><select id="available_time_blocks" multiple><option>mañana</option><option>tarde</option><option>noche</option></select></div>
+            <div><label>Clases por semana (1-7) *</label><input id="classes_per_week" type="number" value="1" min="1" max="7"></div>
+            <div><label>Comentarios</label><textarea id="comments"></textarea></div>
+        </div><button type="submit">Enviar solicitud</button></form></div>`;
+    }
+    async function initAlumno() {
+        const form = document.getElementById("studentForm");
+        if(!form) return;
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const full_name = document.getElementById("full_name").value.trim();
+            const whatsapp = document.getElementById("whatsapp").value.trim();
+            const age = document.getElementById("age").value;
+            const vocal_level = document.getElementById("vocal_level").value;
+            const goal = document.getElementById("goal").value;
+            const available_weekdays = Array.from(document.getElementById("available_weekdays").selectedOptions).map(o=>o.value);
+            const available_time_blocks = Array.from(document.getElementById("available_time_blocks").selectedOptions).map(o=>o.value);
+            const classes_per_week = parseInt(document.getElementById("classes_per_week").value);
+            const comments = document.getElementById("comments").value;
+            if(!full_name || !whatsapp || available_weekdays.length===0 || available_time_blocks.length===0 || isNaN(classes_per_week)) return showMessage("Completa todos los campos requeridos", true);
+            try {
+                await apiRequest("createStudentRequest", { full_name, whatsapp, age, vocal_level, goal, available_weekdays, available_time_blocks, classes_per_week, comments });
+                showMessage("Solicitud enviada correctamente");
+                form.reset();
+            } catch(err) { showMessage(err.message, true); }
+        };
+    }
+    
+    // ========== PROFESOR LOGIN ==========
+    async function renderLogin() {
+        if(adminToken) return await renderDashboard();
+        return `<div class="card" style="max-width:450px; margin:auto;"><h2>Acceso profesor</h2><form id="loginForm"><input type="password" id="adminPassword" placeholder="Contraseña" required><button type="submit">Ingresar</button></form></div>`;
+    }
+    async function initLogin() {
+        const form = document.getElementById("loginForm");
+        if(!form) return;
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const pwd = document.getElementById("adminPassword").value;
+            try {
+                const data = await apiRequest("loginAdmin", { password: pwd });
+                adminToken = data.token;
+                sessionStorage.setItem("adminToken", adminToken);
+                showMessage("Sesión iniciada");
+                renderCurrentView();
+            } catch(err) { showMessage("Contraseña incorrecta", true); }
+        };
+    }
+    
+    // ========== DASHBOARD CON CALENDARIO ==========
+    async function loadData() {
+        sessions = await apiRequest("getSessions", {}, true);
+        studentRequests = await apiRequest("getStudentRequests", {}, true);
+        assignments = await apiRequest("getAssignments", {}, true);
+    }
+    
+    function getSessionsByDate(dateStr) {
+        return sessions.filter(s => s.date === dateStr && s.is_active === true);
+    }
+    
+    function renderCalendar(monthDate) {
+        const year = monthDate.getFullYear();
+        const month = monthDate.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startWeekday = firstDay.getDay(); // 0 domingo
+        const daysInMonth = lastDay.getDate();
+        const todayStr = new Date().toISOString().slice(0,10);
+        let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;"><button id="prevMonthBtn">◀ Anterior</button><h3>${monthDate.toLocaleDateString('es', { month:'long', year:'numeric' })}</h3><button id="nextMonthBtn">Siguiente ▶</button></div><div class="calendar">`;
+        const weekdays = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+        weekdays.forEach(d => html += `<div class="calendar-day-header">${d}</div>`);
+        let dayCounter = 1;
+        for(let i=0; i<startWeekday; i++) html += `<div class="calendar-day"></div>`;
+        for(let d=1; d<=daysInMonth; d++) {
+            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const sessionsOfDay = getSessionsByDate(dateStr);
+            const isToday = (dateStr === todayStr);
+            let dayClass = "calendar-day";
+            if(isToday) dayClass += " today";
+            let sessionHtml = "";
+            sessionsOfDay.forEach(s => {
+                const assignedCount = assignments.filter(a => a.session_id === s.id).length;
+                const maxInfo = s.max_students ? ` (${assignedCount}/${s.max_students})` : '';
+                sessionHtml += `<div class="session-badge" data-session='${JSON.stringify(s)}'>${s.start_time}-${s.end_time} ${s.mode}${maxInfo}</div>`;
+            });
+            html += `<div class="${dayClass}"><strong>${d}</strong><div style="margin-top:5px;">${sessionHtml}</div><button class="addSessionBtn" data-date="${dateStr}" style="font-size:0.7rem; padding:0.2rem 0.4rem; margin-top:0.3rem;">+ Sesión</button></div>`;
+        }
+        let remaining = (42 - (startWeekday + daysInMonth));
+        for(let i=0; i<remaining; i++) html += `<div class="calendar-day"></div>`;
+        html += `</div>`;
+        return html;
+    }
+    
+    async function renderDashboard() {
+        await loadData();
+        return `<div><div class="flex-between" style="display:flex; justify-content:space-between; margin-bottom:1rem;"><h2>📅 Calendario de clases</h2><button id="logoutBtn" class="secondary">Cerrar sesión</button></div>
+        <div class="card"><div id="calendarContainer"></div></div>
+        <div class="card"><h3>📋 Solicitudes de alumnos</h3><div class="filters" style="display:flex; gap:0.5rem; flex-wrap:wrap;"><select id="filterStatus"><option value="">Todos</option><option>pendiente</option><option>contactado</option><option>asignado</option><option>descartado</option></select><select id="filterNivel"><option value="">Todos niveles</option><option>principiante</option><option>intermedio</option><option>avanzado</option></select><button id="applyFilters">Filtrar</button></div><div id="requestsTable"></div></div>
+        <div class="card"><h3>🎯 Asignaciones activas</h3><div id="assignmentsTable"></div></div></div>`;
+    }
+    
+    async function initDashboard() {
+        const calendarContainer = document.getElementById("calendarContainer");
+        if(calendarContainer) await updateCalendarView();
+        document.getElementById("prevMonthBtn")?.addEventListener("click", async () => { currentMonth.setMonth(currentMonth.getMonth()-1); await updateCalendarView(); });
+        document.getElementById("nextMonthBtn")?.addEventListener("click", async () => { currentMonth.setMonth(currentMonth.getMonth()+1); await updateCalendarView(); });
+        document.querySelectorAll(".addSessionBtn").forEach(btn => btn.addEventListener("click", (e) => showCreateSessionModal(e.target.dataset.date)));
+        document.querySelectorAll(".session-badge").forEach(el => el.addEventListener("click", (e) => {
+            const session = JSON.parse(el.dataset.session);
+            showSessionDetail(session);
+        }));
+        document.getElementById("logoutBtn")?.addEventListener("click", () => { sessionStorage.removeItem("adminToken"); adminToken=null; setView("login"); });
+        document.getElementById("applyFilters")?.addEventListener("click", () => renderStudentRequestsTable());
+        await renderStudentRequestsTable();
+        renderAssignmentsTable();
+    }
+    
+    async function updateCalendarView() {
+        const container = document.getElementById("calendarContainer");
+        if(container) {
+            container.innerHTML = renderCalendar(currentMonth);
+            document.getElementById("prevMonthBtn")?.addEventListener("click", async () => { currentMonth.setMonth(currentMonth.getMonth()-1); await updateCalendarView(); });
+            document.getElementById("nextMonthBtn")?.addEventListener("click", async () => { currentMonth.setMonth(currentMonth.getMonth()+1); await updateCalendarView(); });
+            document.querySelectorAll(".addSessionBtn").forEach(btn => btn.addEventListener("click", (e) => showCreateSessionModal(e.target.dataset.date)));
+            document.querySelectorAll(".session-badge").forEach(el => el.addEventListener("click", (e) => {
+                const session = JSON.parse(el.dataset.session);
+                showSessionDetail(session);
+            }));
+        }
+    }
+    
+    async function showCreateSessionModal(dateStr) {
+        const modal = document.createElement("div");
+        modal.className = "modal";
+        modal.innerHTML = `<div class="modal-content"><h3>➕ Nueva sesión · ${dateStr}</h3>
+            <label>Hora inicio</label><input type="time" id="start_time" required>
+            <label>Hora fin</label><input type="time" id="end_time" required>
+            <label>Modalidad</label><select id="mode"><option>presencial</option><option>online</option><option>ambas</option></select>
+            <label>Cupo máximo (opcional)</label><input type="number" id="max_students">
+            <div style="display:flex; gap:0.8rem; margin-top:1rem;"><button id="saveSessionBtn">Guardar</button><button id="closeModalBtn" class="secondary">Cancelar</button></div></div>`;
+        document.body.appendChild(modal);
+        document.getElementById("saveSessionBtn").onclick = async () => {
+            const start_time = document.getElementById("start_time").value;
+            const end_time = document.getElementById("end_time").value;
+            const mode = document.getElementById("mode").value;
+            const max_students = document.getElementById("max_students").value || null;
+            try {
+                await apiRequest("createSession", { date: dateStr, start_time, end_time, mode, max_students, is_active: true }, true);
+                showMessage("Sesión creada");
+                modal.remove();
+                await renderDashboard();
+            } catch(err) { showMessage(err.message, true); }
+        };
+        document.getElementById("closeModalBtn").onclick = () => modal.remove();
+    }
+    
+    async function showSessionDetail(session) {
+        const assignedStudents = assignments.filter(a => a.session_id === session.id).map(a => studentRequests.find(s => s.id === a.student_request_id)).filter(s=>s);
+        const modal = document.createElement("div");
+        modal.className = "modal";
+        modal.innerHTML = `<div class="modal-content"><h3>📌 Sesión del ${session.date} ${session.start_time}-${session.end_time}</h3><p>Modalidad: ${session.mode} | Cupo: ${session.max_students || '∞'}</p><h4>Alumnos asignados (${assignedStudents.length})</h4><ul>${assignedStudents.map(s=>`<li>${s.full_name} - <a href="https://wa.me/${s.whatsapp}" target="_blank">WhatsApp</a> <button class="unassignBtn" data-assign-id="${assignments.find(a=>a.session_id===session.id && a.student_request_id===s.id).id}" style="margin-left:0.5rem;">Desasignar</button></li>`).join('')}</ul><button id="assignStudentBtn">➕ Asignar otro alumno</button><button class="secondary" id="closeModalBtn">Cerrar</button></div>`;
+        document.body.appendChild(modal);
+        document.getElementById("assignStudentBtn").onclick = async () => {
+            const pendingStudents = studentRequests.filter(s => s.status !== 'asignado');
+            const options = pendingStudents.map(s => `<option value="${s.id}">${s.full_name} (${s.vocal_level})</option>`).join('');
+            const assignModal = document.createElement("div");
+            assignModal.className = "modal";
+            assignModal.innerHTML = `<div class="modal-content"><h3>Asignar a sesión</h3><select id="studentSelect">${options}</select><button id="confirmAssign">Asignar</button><button class="secondary" id="cancelAssign">Cancelar</button></div>`;
+            document.body.appendChild(assignModal);
+            document.getElementById("confirmAssign").onclick = async () => {
+                const student_id = document.getElementById("studentSelect").value;
+                try {
+                    await apiRequest("createAssignment", { student_request_id: student_id, session_id: session.id }, true);
+                    showMessage("Alumno asignado");
+                    assignModal.remove();
+                    modal.remove();
+                    await renderDashboard();
+                } catch(err) { showMessage(err.message, true); }
+            };
+            document.getElementById("cancelAssign").onclick = () => assignModal.remove();
+        };
+        document.querySelectorAll(".unassignBtn").forEach(btn => btn.addEventListener("click", async (e) => {
+            const assignId = btn.dataset.assignId;
+            if(confirm("¿Desasignar alumno?")) {
+                await apiRequest("deleteAssignment", { id: assignId }, true);
+                showMessage("Desasignado");
+                modal.remove();
+                await renderDashboard();
+            }
+        }));
+        document.getElementById("closeModalBtn").onclick = () => modal.remove();
+    }
+    
+    async function renderStudentRequestsTable() {
+        const status = document.getElementById("filterStatus")?.value || "";
+        const nivel = document.getElementById("filterNivel")?.value || "";
+        let filtered = studentRequests;
+        if(status) filtered = filtered.filter(r => r.status === status);
+        if(nivel) filtered = filtered.filter(r => r.vocal_level === nivel);
+        const container = document.getElementById("requestsTable");
+        if(!container) return;
+        container.innerHTML = `<div class="table-wrapper"><table><thead><tr><th>Nombre</th><th>WhatsApp</th><th>Nivel</th><th>Días disponibles</th><th>Estado</th><th>Nota</th><th>Acciones</th></tr></thead><tbody>${filtered.map(s => `
+            <tr><td>${s.full_name}</td><td><a href="https://wa.me/${s.whatsapp}" target="_blank">${s.whatsapp}</a></td><td>${s.vocal_level}</td><td>${s.available_weekdays}</td><td><span class="badge">${s.status}</span></td><td><textarea data-id="${s.id}" class="note-input" rows="1">${s.internal_note || ''}</textarea><button class="saveNote" data-id="${s.id}">💾</button></td><td><select data-id="${s.id}" class="statusChange"><option ${s.status==='pendiente'?'selected':''}>pendiente</option><option ${s.status==='contactado'?'selected':''}>contactado</option><option ${s.status==='asignado'?'selected':''}>asignado</option><option ${s.status==='descartado'?'selected':''}>descartado</option></select><button class="changeStatus" data-id="${s.id}">Cambiar</button></td></tr>
+        `).join('')}</tbody></table></div>`;
+        document.querySelectorAll(".saveNote").forEach(btn => btn.addEventListener("click", async (e) => {
+            const id = btn.dataset.id;
+            const note = document.querySelector(`.note-input[data-id="${id}"]`).value;
+            await apiRequest("updateStudentNote", { id, internal_note: note }, true);
+            showMessage("Nota guardada");
+        }));
+        document.querySelectorAll(".changeStatus").forEach(btn => btn.addEventListener("click", async (e) => {
+            const id = btn.dataset.id;
+            const newStatus = document.querySelector(`.statusChange[data-id="${id}"]`).value;
+            await apiRequest("updateStudentStatus", { id, status: newStatus }, true);
+            showMessage("Estado actualizado");
+            await renderDashboard();
+        }));
+    }
+    
+    async function renderAssignmentsTable() {
+        const enriched = assignments.map(ass => {
+            const student = studentRequests.find(s => s.id === ass.student_request_id);
+            const session = sessions.find(s => s.id === ass.session_id);
+            return { ...ass, studentName: student?.full_name || "?", sessionInfo: session ? `${session.date} ${session.start_time}` : "?" };
+        });
+        const container = document.getElementById("assignmentsTable");
+        if(!container) return;
+        container.innerHTML = `<div class="table-wrapper"><table><thead><tr><th>Alumno</th><th>Sesión</th><th>Fecha asignación</th><th></th></tr></thead><tbody>${enriched.map(e => `<tr><td>${e.studentName}</td><td>${e.sessionInfo}</td><td>${new Date(e.assigned_at).toLocaleDateString()}</td><td><button class="deleteAssign" data-id="${e.id}">Desasignar</button></td></tr>`).join('')}</tbody></table></div>`;
+        document.querySelectorAll(".deleteAssign").forEach(btn => btn.addEventListener("click", async (e) => {
+            const assignId = btn.dataset.id;
+            if(confirm("¿Desasignar?")) {
+                await apiRequest("deleteAssignment", { id: assignId }, true);
+                showMessage("Desasignado");
+                await renderDashboard();
+            }
+        }));
+    }
+    
+    // ========== NAVEGACIÓN ==========
+    async function renderCurrentView() {
+        const content = document.getElementById("appContent");
+        if(currentView === "alumno") { content.innerHTML = await renderAlumno(); await initAlumno(); }
+        else if(currentView === "login") { content.innerHTML = await renderLogin(); await initLogin(); }
+        else if(currentView === "dashboard") { content.innerHTML = await renderDashboard(); await initDashboard(); }
+        highlightNav();
+    }
+    function highlightNav() {
+        document.querySelectorAll(".nav-btn").forEach(btn => {
+            const v = btn.dataset.view;
+            if((v==="alumno" && currentView==="alumno") || (v==="login" && (currentView==="login"||currentView==="dashboard"))) btn.classList.add("active");
+            else btn.classList.remove("active");
+        });
+    }
+    function setView(view) {
+        if(view==="dashboard" && !adminToken) currentView="login";
+        else if(view==="login" && adminToken) currentView="dashboard";
+        else currentView=view;
+        renderCurrentView();
+    }
+    document.addEventListener("click", (e) => { if(e.target.classList.contains("nav-btn")) setView(e.target.dataset.view); });
+    setView("alumno");
+</script>
+</body>
+</html>
