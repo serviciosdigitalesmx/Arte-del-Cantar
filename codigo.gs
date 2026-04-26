@@ -1,25 +1,19 @@
 /**
- * ArteDelCantar Agenda - Backend Autónomo
+ * ArteDelCantar - Backend Actualizado para servir Web App
  */
-const SCRIPT_PROPERTIES = PropertiesService.getScriptProperties();
 
-function setupInitialConfig() {
-  try {
-    let ss = SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.create('ArteDelCantar_Agenda');
-    const spreadsheetId = ss.getId();
-    SCRIPT_PROPERTIES.setProperty('SPREADSHEET_ID', spreadsheetId);
-    Logger.log('✅ Configuración completada. Spreadsheet ID: ' + spreadsheetId);
-    return { ok: true, spreadsheetId };
-  } catch (error) { return { ok: false, error: error.message }; }
-}
-
+// Esta es la función que renderiza tu archivo index.html como Web App
 function doGet(e) {
-    return ContentService.createTextOutput(JSON.stringify({status: "ok"}))
-      .setMimeType(ContentService.MimeType.JSON);
+  return HtmlService.createTemplateFromFile('index')
+      .evaluate()
+      .setTitle('ArteDelCantar')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
+// Tus endpoints de API se mantienen intactos aquí abajo...
 function doPost(e) {
-    // Aquí iría tu lógica de negocio
-    return ContentService.createTextOutput(JSON.stringify({status: "success"}))
-      .setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(JSON.stringify({status: "success"}))
+    .setMimeType(ContentService.MimeType.JSON)
+    .addHeader("Access-Control-Allow-Origin", "*");
 }
