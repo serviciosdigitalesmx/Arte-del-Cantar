@@ -5,6 +5,7 @@ MENSAJE=${1:-"🚀 Actualización del sistema: $(date +'%Y-%m-%d %H:%M')"}
 
 echo "☁️  1. Subiendo BACKEND a Google Apps Script..."
 clasp push
+clasp deploy
 
 echo "📦 2. Preparando archivos del FRONTEND para GitHub..."
 git add .
