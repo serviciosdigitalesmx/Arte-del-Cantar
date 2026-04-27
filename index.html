@@ -3,12 +3,388 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArteDelCantar</title>
+    <title>ArteDelCantar | Agenda & Academia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #d4af37;
+            --primary-dark: #aa8c2c;
+            --bg: #0f0f0f;
+            --card-bg: #1a1a1a;
+            --text: #ffffff;
+            --text-muted: #a0a0a0;
+            --glass: rgba(255, 255, 255, 0.05);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .bg-glow {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% -20%, #d4af3722 0%, transparent 50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        header {
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid var(--glass);
+            background: rgba(15, 15, 15, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -1px;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 6rem;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-family: 'Playfair Display', serif;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, #fff, var(--primary), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
+        }
+
+        .view-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            border: none;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-primary { background: var(--primary); color: #000; }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3); }
+
+        .btn-outline { background: transparent; border: 1px solid var(--glass); color: var(--text); }
+        .btn-outline:hover { background: var(--glass); border-color: var(--primary); }
+
+        .section-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            margin-bottom: 4rem;
+            display: none;
+        }
+
+        .section-card.active { display: block; animation: slideUp 0.6s ease-out; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem; }
+        input, select, textarea {
+            width: 100%;
+            padding: 1rem;
+            background: #252525;
+            border: 1px solid var(--glass);
+            border-radius: 12px;
+            color: #fff;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* API URL Config Overlay */
+        #configOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            display: none; justify-content: center; align-items: center;
+            padding: 2rem;
+        }
+
+        .config-box {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 24px;
+            border: 1px solid var(--primary);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        #loadingOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none; justify-content: center; align-items: center;
+            z-index: 3000;
+        }
+    </style>
 </head>
 <body>
-    <div id="appContent">Cargando aplicación...</div>
+    <div class="bg-glow"></div>
+    
+    <!-- Configuración Inicial (Se oculta si ya existe la URL) -->
+    <div id="configOverlay">
+        <div class="config-box">
+            <h2 style="color: var(--primary); margin-bottom: 1rem;">Configuración de API</h2>
+            <p style="margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">Pega la URL de implementación de tu Google Apps Script:</p>
+            <input type="text" id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom: 1.5rem;">
+            <button onclick="saveApiUrl()" class="btn btn-primary" style="width: 100%; justify-content: center;">Guardar Configuración</button>
+        </div>
+    </div>
+
+    <header>
+        <div class="logo">Arte del Cantar</div>
+    </header>
+
+    <main>
+        <div class="hero">
+            <h1>Descubre tu Voz</h1>
+            <p>Agenda tu clase de canto y comienza tu viaje musical con los mejores profesionales.</p>
+            <div class="view-switcher">
+                <button class="btn btn-primary" onclick="showSection('booking')">Agendar Clase</button>
+                <button class="btn btn-outline" onclick="showSection('admin')">Panel Admin</button>
+            </div>
+        </div>
+
+        <!-- Booking Section -->
+        <section id="bookingSection" class="section-card active">
+            <h2 style="margin-bottom: 2rem;">Nueva Solicitud</h2>
+            <form id="bookingForm">
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Nombre Completo</label>
+                        <input type="text" name="full_name" required placeholder="Tu nombre...">
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp (con lada)</label>
+                        <input type="tel" name="whatsapp" required placeholder="Ej: 525512345678">
+                    </div>
+                    <div class="form-group">
+                        <label>Nivel Vocal</label>
+                        <select name="vocal_level">
+                            <option value="principiante">Principiante</option>
+                            <option value="intermedio">Intermedio</option>
+                            <option value="avanzado">Avanzado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Clases por semana</label>
+                        <input type="number" name="classes_per_week" value="1" min="1" max="7">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>¿Cuál es tu objetivo?</label>
+                    <textarea name="goal" rows="3" required placeholder="Cantar mejor, perder el miedo, técnica vocal..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Enviar Solicitud</button>
+            </form>
+        </section>
+
+        <!-- Admin Login -->
+        <section id="adminLoginSection" class="section-card">
+            <div style="max-width: 400px; margin: 0 auto; text-align: center;">
+                <h2 style="margin-bottom: 1.5rem;">Acceso Administrativo</h2>
+                <div class="form-group" style="text-align: left;">
+                    <label>Contraseña</label>
+                    <input type="password" id="adminPassword" placeholder="••••••••">
+                </div>
+                <button onclick="loginAdmin()" class="btn btn-primary" style="width: 100%; justify-content: center;">Entrar</button>
+                <button onclick="resetApiUrl()" style="margin-top: 2rem; background: none; border: none; color: var(--text-muted); cursor: pointer; text-decoration: underline; font-size: 0.8rem;">Cambiar URL de API</button>
+            </div>
+        </section>
+
+        <!-- Admin Panel -->
+        <section id="adminDashboardSection" class="section-card">
+            <div class="admin-header" style="display: flex; justify-content: space-between; margin-bottom: 2rem; align-items: center;">
+                <h2>Panel de Control</h2>
+                <button class="btn btn-outline" onclick="logoutAdmin()">Cerrar Sesión</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="color: var(--primary); text-align: left; border-bottom: 1px solid var(--glass);">
+                            <th style="padding: 1rem;">Alumno</th>
+                            <th style="padding: 1rem;">WhatsApp</th>
+                            <th style="padding: 1rem;">Nivel</th>
+                            <th style="padding: 1rem;">Estado</th>
+                            <th style="padding: 1rem;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <div id="loadingOverlay">
+        <div style="color: var(--primary); font-weight: 600;">Procesando...</div>
+    </div>
+
     <script>
-        console.log("App cargada correctamente");
+        let API_URL = localStorage.getItem('ARTEDELCANTAR_API_URL') || 'https://script.google.com/macros/s/AKfycbyqq8TbwiwRjkwEazwXbT5pVKTj8PXyWMAq1Pm8-UiyTg_m_crBG2fzM4mV_9OPKAPHVA/exec';
+        let currentUserToken = null;
+
+        window.onload = () => {
+            if (!API_URL) {
+                document.getElementById('configOverlay').style.display = 'flex';
+            }
+        };
+
+        function saveApiUrl() {
+            const url = document.getElementById('apiUrlInput').value.trim();
+            if (url.startsWith('https://script.google.com')) {
+                localStorage.setItem('ARTEDELCANTAR_API_URL', url);
+                API_URL = url;
+                document.getElementById('configOverlay').style.display = 'none';
+                alert("Configuración guardada.");
+            } else {
+                alert("Por favor ingresa una URL válida de Google Apps Script.");
+            }
+        }
+
+        function resetApiUrl() {
+            localStorage.removeItem('ARTEDELCANTAR_API_URL');
+            location.reload();
+        }
+
+        async function apiCall(action, payload = {}) {
+            if (!API_URL) return;
+            toggleLoading(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Importante para GAS si no se manejan redirecciones complejas, 
+                                     // pero intentaremos con cors normal primero.
+                    body: JSON.stringify({ action, payload, token: currentUserToken })
+                });
+
+                // GAS tiene un comportamiento especial con fetch y CORS. 
+                // A menudo redirige (302), lo que puede dar problemas en navegadores.
+                // Si 'cors' falla, usamos un truco o aseguramos que el backend sea perfecto.
+                
+                // Re-intento con fetch estándar
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action, payload, token: currentUserToken })
+                });
+                const data = await res.json();
+                toggleLoading(false);
+                if (data.ok) return data;
+                else throw new Error(data.error);
+            } catch (e) {
+                toggleLoading(false);
+                console.error(e);
+                throw e;
+            }
+        }
+
+        function toggleLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+
+        function showSection(id) {
+            document.querySelectorAll('.section-card').forEach(s => s.classList.remove('active'));
+            if (id === 'booking') document.getElementById('bookingSection').classList.add('active');
+            else if (id === 'admin') {
+                if (currentUserToken) {
+                    document.getElementById('adminDashboardSection').classList.add('active');
+                    loadRequests();
+                } else {
+                    document.getElementById('adminLoginSection').classList.add('active');
+                }
+            }
+        }
+
+        document.getElementById('bookingForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target));
+            try {
+                await apiCall('createStudentRequest', data);
+                alert("¡Solicitud enviada! Nos pondremos en contacto contigo pronto.");
+                e.target.reset();
+            } catch (err) { alert("Error al enviar solicitud. Revisa la URL de la API."); }
+        };
+
+        async function loginAdmin() {
+            const password = document.getElementById('adminPassword').value;
+            try {
+                const res = await apiCall('loginAdmin', { password });
+                currentUserToken = res.data.token;
+                showSection('admin');
+            } catch (err) { alert("Acceso denegado."); }
+        }
+
+        function logoutAdmin() {
+            currentUserToken = null;
+            showSection('booking');
+        }
+
+        async function loadRequests() {
+            try {
+                const res = await apiCall('getStudentRequests');
+                const body = document.getElementById('requestsBody');
+                body.innerHTML = res.data.map(r => `
+                    <tr style="border-bottom: 1px solid var(--glass);">
+                        <td style="padding: 1rem;">${r.full_name}</td>
+                        <td style="padding: 1rem;">${r.whatsapp}</td>
+                        <td style="padding: 1rem;">${r.vocal_level}</td>
+                        <td style="padding: 1rem;"><span style="color: var(--primary)">${r.status}</span></td>
+                        <td style="padding: 1rem;">
+                            <button class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="updateStatus('${r.id}', 'contactado')">Marcar Contactado</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) { alert("Error al cargar datos."); }
+        }
+
+        async function updateStatus(id, status) {
+            try {
+                await apiCall('updateStudentStatus', { id, status });
+                loadRequests();
+            } catch (err) { alert("Error al actualizar."); }
+        }
     </script>
 </body>
 </html>
