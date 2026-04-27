@@ -3,387 +3,309 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArteDelCantar | Agenda & Academia</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <title>ArteDelCantar | Pro Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #d4af37;
-            --primary-dark: #aa8c2c;
-            --bg: #0f0f0f;
-            --card-bg: #1a1a1a;
+            --bg: #0a0a0a;
+            --card-bg: #141414;
             --text: #ffffff;
-            --text-muted: #a0a0a0;
-            --glass: rgba(255, 255, 255, 0.05);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --text-muted: #888888;
+            --success: #2ecc71;
+            --warning: #f1c40f;
+            --glass: rgba(255, 255, 255, 0.03);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
 
-        .bg-glow {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% -20%, #d4af3722 0%, transparent 50%);
-            z-index: -1;
-            pointer-events: none;
-        }
+        /* Layout */
+        header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--glass); display: flex; justify-content: space-between; align-items: center; background: rgba(10,10,10,0.8); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
+        .logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--primary); }
+        main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
 
-        header {
-            padding: 2rem;
-            text-align: center;
-            border-bottom: 1px solid var(--glass);
-            background: rgba(15, 15, 15, 0.8);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+        /* Metrics */
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+        .metric-card { background: var(--card-bg); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--glass); }
+        .metric-val { font-size: 2rem; font-weight: 600; color: var(--primary); display: block; }
+        .metric-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
 
-        .logo {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            letter-spacing: -1px;
-        }
+        /* Navigation */
+        .nav-tabs { display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--glass); padding-bottom: 1rem; }
+        .nav-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 1rem; cursor: pointer; padding: 0.5rem 1rem; border-radius: 8px; transition: 0.3s; }
+        .nav-btn.active { color: var(--primary); background: var(--glass); }
 
-        main {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 4rem 2rem;
-        }
+        /* CRM Table */
+        .section { display: none; }
+        .section.active { display: block; }
+        .card { background: var(--card-bg); border-radius: 20px; border: 1px solid var(--glass); overflow: hidden; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th, td { padding: 1.2rem; text-align: left; border-bottom: 1px solid var(--glass); }
+        th { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; }
+        
+        /* Badges */
+        .badge { padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .status-pendiente { background: #f1c40f22; color: #f1c40f; }
+        .status-contactado { background: #3498db22; color: #3498db; }
+        .status-asignado { background: #2ecc7122; color: #2ecc71; }
+        .commitment-pro { border: 1px solid var(--primary); color: var(--primary); }
 
-        .hero {
-            text-align: center;
-            margin-bottom: 6rem;
-        }
-
-        .hero h1 {
-            font-size: 3.5rem;
-            font-family: 'Playfair Display', serif;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(to right, #fff, var(--primary), #fff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            max-width: 600px;
-            margin: 0 auto 2.5rem;
-        }
-
-        .view-switcher {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 3rem;
-        }
-
-        .btn {
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            border: none;
-            font-family: inherit;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1rem;
-        }
-
+        /* Buttons */
+        .btn { padding: 0.8rem 1.5rem; border-radius: 10px; border: none; font-family: inherit; font-weight: 600; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 0.5rem; }
         .btn-primary { background: var(--primary); color: #000; }
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3); }
+        .btn-wa { background: #25d366; color: #fff; text-decoration: none; font-size: 0.8rem; }
+        .btn-icon { padding: 0.5rem; background: var(--glass); color: var(--text); border-radius: 8px; }
 
-        .btn-outline { background: transparent; border: 1px solid var(--glass); color: var(--text); }
-        .btn-outline:hover { background: var(--glass); border-color: var(--primary); }
+        /* Forms */
+        .form-group { margin-bottom: 1.2rem; }
+        label { display: block; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+        input, select, textarea { width: 100%; padding: 0.8rem; background: #1a1a1a; border: 1px solid var(--glass); border-radius: 10px; color: #fff; font-family: inherit; }
 
-        .section-card {
-            background: var(--card-bg);
-            border: 1px solid var(--glass);
-            border-radius: 24px;
-            padding: 3rem;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            margin-bottom: 4rem;
-            display: none;
-        }
+        /* Overlays */
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 500; }
 
-        .section-card.active { display: block; animation: slideUp 0.6s ease-out; }
-
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .form-group { margin-bottom: 1.5rem; }
-        label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem; }
-        input, select, textarea {
-            width: 100%;
-            padding: 1rem;
-            background: #252525;
-            border: 1px solid var(--glass);
-            border-radius: 12px;
-            color: #fff;
-            font-family: inherit;
-            transition: var(--transition);
-        }
-
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* API URL Config Overlay */
-        #configOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 2000;
-            display: none; justify-content: center; align-items: center;
-            padding: 2rem;
-        }
-
-        .config-box {
-            background: var(--card-bg);
-            padding: 2.5rem;
-            border-radius: 24px;
-            border: 1px solid var(--primary);
-            max-width: 500px;
-            width: 100%;
-        }
-
-        #loadingOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: none; justify-content: center; align-items: center;
-            z-index: 3000;
+        @media (max-width: 768px) {
+            main { padding: 1rem; }
+            .metrics-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
 <body>
-    <div class="bg-glow"></div>
-    
-    <!-- Configuración Inicial (Se oculta si ya existe la URL) -->
-    <div id="configOverlay">
-        <div class="config-box">
-            <h2 style="color: var(--primary); margin-bottom: 1rem;">Configuración de API</h2>
-            <p style="margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">Pega la URL de implementación de tu Google Apps Script:</p>
-            <input type="text" id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom: 1.5rem;">
-            <button onclick="saveApiUrl()" class="btn btn-primary" style="width: 100%; justify-content: center;">Guardar Configuración</button>
+    <div id="loading"><div>Cargando...</div></div>
+
+    <!-- Login -->
+    <div id="loginOverlay">
+        <div style="max-width: 320px; width: 100%; text-align: center;">
+            <div class="logo" style="font-size: 2.5rem; margin-bottom: 2rem;">Arte del Cantar</div>
+            <input type="password" id="adminPass" placeholder="Contraseña Admin" style="margin-bottom: 1rem; text-align: center;">
+            <button onclick="login()" class="btn btn-primary" style="width: 100%; justify-content: center;">Entrar al Dashboard</button>
+            <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">Por defecto: admin123</p>
         </div>
     </div>
 
+    <!-- Main Dashboard -->
     <header>
         <div class="logo">Arte del Cantar</div>
+        <button onclick="logout()" class="btn btn-icon">Cerrar Sesión</button>
     </header>
 
     <main>
-        <div class="hero">
-            <h1>Descubre tu Voz</h1>
-            <p>Agenda tu clase de canto y comienza tu viaje musical con los mejores profesionales.</p>
-            <div class="view-switcher">
-                <button class="btn btn-primary" onclick="showSection('booking')">Agendar Clase</button>
-                <button class="btn btn-outline" onclick="showSection('admin')">Panel Admin</button>
+        <!-- Metrics Bar -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <span class="metric-val" id="stat-total">-</span>
+                <span class="metric-label">Alumnos Totales</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-val" id="stat-pending">-</span>
+                <span class="metric-label">Pendientes</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-val" id="stat-free">-</span>
+                <span class="metric-label">Cupos Libres</span>
             </div>
         </div>
 
-        <!-- Booking Section -->
-        <section id="bookingSection" class="section-card active">
-            <h2 style="margin-bottom: 2rem;">Nueva Solicitud</h2>
-            <form id="bookingForm">
-                <div class="grid">
-                    <div class="form-group">
-                        <label>Nombre Completo</label>
-                        <input type="text" name="full_name" required placeholder="Tu nombre...">
-                    </div>
-                    <div class="form-group">
-                        <label>WhatsApp (con lada)</label>
-                        <input type="tel" name="whatsapp" required placeholder="Ej: 525512345678">
-                    </div>
-                    <div class="form-group">
-                        <label>Nivel Vocal</label>
-                        <select name="vocal_level">
-                            <option value="principiante">Principiante</option>
-                            <option value="intermedio">Intermedio</option>
-                            <option value="avanzado">Avanzado</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Clases por semana</label>
-                        <input type="number" name="classes_per_week" value="1" min="1" max="7">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>¿Cuál es tu objetivo?</label>
-                    <textarea name="goal" rows="3" required placeholder="Cantar mejor, perder el miedo, técnica vocal..."></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Enviar Solicitud</button>
-            </form>
-        </section>
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-btn active" onclick="switchTab('pipeline')">Pipeline (CRM)</button>
+            <button class="nav-btn" onclick="switchTab('agenda')">Agenda (Clases)</button>
+        </div>
 
-        <!-- Admin Login -->
-        <section id="adminLoginSection" class="section-card">
-            <div style="max-width: 400px; margin: 0 auto; text-align: center;">
-                <h2 style="margin-bottom: 1.5rem;">Acceso Administrativo</h2>
-                <div class="form-group" style="text-align: left;">
-                    <label>Contraseña</label>
-                    <input type="password" id="adminPassword" placeholder="••••••••">
+        <!-- Section: Pipeline / CRM -->
+        <section id="pipelineTab" class="section active">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; align-items: center;">
+                <h2>Pipeline de Alumnos</h2>
+                <button class="btn btn-outline" onclick="openImportModal()">📥 Importar desde WhatsApp</button>
+            </div>
+            <div class="card">
+                <div class="table-container">
+                    <table id="studentsTable">
+                        <thead>
+                            <tr>
+                                <th>Alumno</th>
+                                <th>Nivel / Compromiso</th>
+                                <th>Estado</th>
+                                <th>Contacto</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsBody"></tbody>
+                    </table>
                 </div>
-                <button onclick="loginAdmin()" class="btn btn-primary" style="width: 100%; justify-content: center;">Entrar</button>
-                <button onclick="resetApiUrl()" style="margin-top: 2rem; background: none; border: none; color: var(--text-muted); cursor: pointer; text-decoration: underline; font-size: 0.8rem;">Cambiar URL de API</button>
             </div>
         </section>
 
-        <!-- Admin Panel -->
-        <section id="adminDashboardSection" class="section-card">
-            <div class="admin-header" style="display: flex; justify-content: space-between; margin-bottom: 2rem; align-items: center;">
-                <h2>Panel de Control</h2>
-                <button class="btn btn-outline" onclick="logoutAdmin()">Cerrar Sesión</button>
+        <!-- Section: Agenda -->
+        <section id="agendaTab" class="section">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; align-items: center;">
+                <h2>Horarios de Clase</h2>
+                <button class="btn btn-primary" onclick="openNewSession()">+ Nuevo Horario</button>
             </div>
-            <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="color: var(--primary); text-align: left; border-bottom: 1px solid var(--glass);">
-                            <th style="padding: 1rem;">Alumno</th>
-                            <th style="padding: 1rem;">WhatsApp</th>
-                            <th style="padding: 1rem;">Nivel</th>
-                            <th style="padding: 1rem;">Estado</th>
-                            <th style="padding: 1rem;">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="requestsBody"></tbody>
-                </table>
+            <div class="card">
+                <div class="table-container">
+                    <table id="sessionsTable">
+                        <thead>
+                            <tr>
+                                <th>Día</th>
+                                <th>Hora</th>
+                                <th>Cupo</th>
+                                <th>Modalidad</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sessionsBody"></tbody>
+                    </table>
+                </div>
             </div>
         </section>
     </main>
 
-    <div id="loadingOverlay">
-        <div style="color: var(--primary); font-weight: 600;">Procesando...</div>
-    </div>
-
     <script>
-        let API_URL = localStorage.getItem('ARTEDELCANTAR_API_URL') || 'https://script.google.com/macros/s/AKfycbyqq8TbwiwRjkwEazwXbT5pVKTj8PXyWMAq1Pm8-UiyTg_m_crBG2fzM4mV_9OPKAPHVA/exec';
-        let currentUserToken = null;
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyqq8TbwiwRjkwEazwXbT5pVKTj8PXyWMAq1Pm8-UiyTg_m_crBG2fzM4mV_9OPKAPHVA/exec';
+        let AUTH_TOKEN = localStorage.getItem('ARTEDELCANTAR_TOKEN');
 
         window.onload = () => {
-            if (!API_URL) {
-                document.getElementById('configOverlay').style.display = 'flex';
+            if (AUTH_TOKEN) {
+                document.getElementById('loginOverlay').style.display = 'none';
+                refreshDashboard();
             }
         };
 
-        function saveApiUrl() {
-            const url = document.getElementById('apiUrlInput').value.trim();
-            if (url.startsWith('https://script.google.com')) {
-                localStorage.setItem('ARTEDELCANTAR_API_URL', url);
-                API_URL = url;
-                document.getElementById('configOverlay').style.display = 'none';
-                alert("Configuración guardada.");
-            } else {
-                alert("Por favor ingresa una URL válida de Google Apps Script.");
+        async function api(action, payload = {}) {
+            document.getElementById('loading').style.display = 'flex';
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action, payload, token: AUTH_TOKEN })
+                });
+                const data = await res.json();
+                if (!data.ok) throw new Error(data.error);
+                return data;
+            } catch (e) {
+                if (e.message.includes('autorizado')) logout();
+                alert("Error: " + e.message);
+                throw e;
+            } finally {
+                document.getElementById('loading').style.display = 'none';
             }
         }
 
-        function resetApiUrl() {
-            localStorage.removeItem('ARTEDELCANTAR_API_URL');
+        async function login() {
+            const password = document.getElementById('adminPass').value;
+            const res = await api('login', { password });
+            AUTH_TOKEN = res.data.token;
+            localStorage.setItem('ARTEDELCANTAR_TOKEN', AUTH_TOKEN);
+            document.getElementById('loginOverlay').style.display = 'none';
+            refreshDashboard();
+        }
+
+        function logout() {
+            localStorage.removeItem('ARTEDELCANTAR_TOKEN');
             location.reload();
         }
 
-        async function apiCall(action, payload = {}) {
-            if (!API_URL) return;
-            toggleLoading(true);
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // Importante para GAS si no se manejan redirecciones complejas, 
-                                     // pero intentaremos con cors normal primero.
-                    body: JSON.stringify({ action, payload, token: currentUserToken })
-                });
-
-                // GAS tiene un comportamiento especial con fetch y CORS. 
-                // A menudo redirige (302), lo que puede dar problemas en navegadores.
-                // Si 'cors' falla, usamos un truco o aseguramos que el backend sea perfecto.
-                
-                // Re-intento con fetch estándar
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action, payload, token: currentUserToken })
-                });
-                const data = await res.json();
-                toggleLoading(false);
-                if (data.ok) return data;
-                else throw new Error(data.error);
-            } catch (e) {
-                toggleLoading(false);
-                console.error(e);
-                throw e;
-            }
+        function switchTab(tab) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tab + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+            if (tab === 'pipeline') loadStudents();
+            if (tab === 'agenda') loadSessions();
         }
 
-        function toggleLoading(show) {
-            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        async function refreshDashboard() {
+            const res = await api('getDashboardStats');
+            const s = res.data;
+            document.getElementById('stat-total').innerText = s.total;
+            document.getElementById('stat-pending').innerText = s.pending;
+            document.getElementById('stat-free').innerText = s.free_slots;
+            loadStudents();
         }
 
-        function showSection(id) {
-            document.querySelectorAll('.section-card').forEach(s => s.classList.remove('active'));
-            if (id === 'booking') document.getElementById('bookingSection').classList.add('active');
-            else if (id === 'admin') {
-                if (currentUserToken) {
-                    document.getElementById('adminDashboardSection').classList.add('active');
-                    loadRequests();
-                } else {
-                    document.getElementById('adminLoginSection').classList.add('active');
-                }
-            }
-        }
-
-        document.getElementById('bookingForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const data = Object.fromEntries(new FormData(e.target));
-            try {
-                await apiCall('createStudentRequest', data);
-                alert("¡Solicitud enviada! Nos pondremos en contacto contigo pronto.");
-                e.target.reset();
-            } catch (err) { alert("Error al enviar solicitud. Revisa la URL de la API."); }
-        };
-
-        async function loginAdmin() {
-            const password = document.getElementById('adminPassword').value;
-            try {
-                const res = await apiCall('loginAdmin', { password });
-                currentUserToken = res.data.token;
-                showSection('admin');
-            } catch (err) { alert("Acceso denegado."); }
-        }
-
-        function logoutAdmin() {
-            currentUserToken = null;
-            showSection('booking');
-        }
-
-        async function loadRequests() {
-            try {
-                const res = await apiCall('getStudentRequests');
-                const body = document.getElementById('requestsBody');
-                body.innerHTML = res.data.map(r => `
-                    <tr style="border-bottom: 1px solid var(--glass);">
-                        <td style="padding: 1rem;">${r.full_name}</td>
-                        <td style="padding: 1rem;">${r.whatsapp}</td>
-                        <td style="padding: 1rem;">${r.vocal_level}</td>
-                        <td style="padding: 1rem;"><span style="color: var(--primary)">${r.status}</span></td>
-                        <td style="padding: 1rem;">
-                            <button class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="updateStatus('${r.id}', 'contactado')">Marcar Contactado</button>
-                        </td>
-                    </tr>
-                `).join('');
-            } catch (err) { alert("Error al cargar datos."); }
+        async function loadStudents() {
+            const res = await api('getStudents');
+            const body = document.getElementById('studentsBody');
+            body.innerHTML = res.data.map(s => `
+                <tr>
+                    <td>
+                        <div style="font-weight:600">${s.full_name}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted)">${s.age} años | ${s.goal.substring(0,25)}...</div>
+                    </td>
+                    <td>
+                        <div style="font-size:0.8rem">${s.vocal_level}</div>
+                        <span class="badge commitment-pro" style="font-size:0.6rem">${s.commitment}</span>
+                    </td>
+                    <td><span class="badge status-${s.status}">${s.status}</span></td>
+                    <td>
+                        <a href="https://wa.me/${s.whatsapp}" target="_blank" class="btn btn-wa">WhatsApp</a>
+                    </td>
+                    <td>
+                        <select onchange="updateStatus('${s.id}', this.value)" style="width:auto; padding:0.2rem">
+                            <option value="">Cambiar...</option>
+                            <option value="contactado">Contactado</option>
+                            <option value="activo">Activo</option>
+                            <option value="abandonó">Abandonó</option>
+                        </select>
+                    </td>
+                </tr>
+            `).join('');
         }
 
         async function updateStatus(id, status) {
-            try {
-                await apiCall('updateStudentStatus', { id, status });
-                loadRequests();
-            } catch (err) { alert("Error al actualizar."); }
+            if (!status) return;
+            await api('updateStudent', { id, updates: { status } });
+            refreshDashboard();
+        }
+
+        async function loadSessions() {
+            const res = await api('getSessions');
+            const body = document.getElementById('sessionsBody');
+            body.innerHTML = res.data.map(s => `
+                <tr>
+                    <td>${s.day}</td>
+                    <td>${s.start_time} - ${s.end_time}</td>
+                    <td>
+                        <div style="font-weight:600">${s.current_students}/${s.max_students}</div>
+                        <div style="width:100%; height:4px; background:var(--glass); border-radius:2px; margin-top:4px">
+                            <div style="width:${(s.current_students/s.max_students)*100}%; height:100%; background:var(--primary); border-radius:2px"></div>
+                        </div>
+                    </td>
+                    <td>${s.mode}</td>
+                    <td>
+                        <button class="btn btn-icon" onclick="deleteSession('${s.id}')">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function openNewSession() {
+            const day = prompt("Día (Lunes, Martes...)");
+            const start = prompt("Hora inicio (Ej: 16:00)");
+            const end = prompt("Hora fin (Ej: 17:00)");
+            if (day && start && end) {
+                await api('createSession', { day, start_time: start, end_time: end, max_students: 5 });
+                loadSessions();
+            }
+        }
+
+        async function deleteSession(id) {
+            if (confirm("¿Eliminar este horario?")) {
+                await api('deleteSession', { id });
+                loadSessions();
+            }
+        }
+
+        async function openImportModal() {
+            const raw = prompt("Pega los números de WhatsApp separados por comas o saltos de línea:");
+            if (!raw) return;
+            const numbers = raw.split(/[\n,]/).map(n => n.trim()).filter(n => n);
+            const res = await api('bulkImport', { numbers });
+            alert(`Se importaron ${res.data.imported} alumnos nuevos.`);
+            loadStudents();
         }
     </script>
 </body>
