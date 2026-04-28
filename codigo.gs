@@ -19,7 +19,8 @@ function setup() {
         'availability_json', 'classes_per_week', 'status', 'internal_note',
         'created_at', 'updated_at', 'deleted'
       ],
-      'class_assignments': ['id', 'student_id', 'session_id', 'assigned_at', 'deleted']
+      'class_assignments': ['id', 'student_id', 'session_id', 'assigned_at', 'deleted'],
+      'notifications': ['id', 'type', 'title', 'message', 'student_id', 'is_read', 'created_at', 'read_at', 'deleted']
     };
 
     for (const [sheetName, headers] of Object.entries(sheetsConfig)) {
@@ -76,6 +77,9 @@ function doPost(e) {
     if (action === 'createStudentRequest') return handleCreateStudentRequest(payload);
     if (action === 'login') return handleLogin(payload);
     if (action === 'setAdminPassword') return handleSetAdminPassword(payload);
+    if (action === 'setTeacherContact') return handleSetTeacherContact(payload);
+    if (action === 'getNotifications') return handleGetNotifications(payload);
+    if (action === 'markNotificationRead') return handleMarkNotificationRead(payload);
     if (action === 'getPublicSessions') {
       const sessions = getAllRecords('sessions').filter(s => s.is_active === true && s.deleted !== true);
       return respondJson({ ok: true, data: sessions });
@@ -143,7 +147,13 @@ function handleCreateStudentRequest(data) {
       deleted: false
     };
     insertRecord('student_requests', record);
-    return respondJson({ ok: true, message: 'Alumno registrado exitosamente', data: { id } });
+    const teacherWhatsappUrl = createNotificationAndMaybeAlertTeacher({
+      type: 'new_student_request',
+      title: 'Nueva solicitud de alumno',
+      message: `Se registró un nuevo alumno: ${data.full_name || 'Sin nombre'}`,
+      student_id: id
+    });
+    return respondJson({ ok: true, message: 'Alumno registrado exitosamente', data: { id, teacher_whatsapp_url: teacherWhatsappUrl } });
   }
 }
 
@@ -319,6 +329,61 @@ function handleSetAdminPassword({ currentPassword, newPassword }) {
   if (!newPassword || String(newPassword).length < 8) throw new Error('La nueva contraseña debe tener al menos 8 caracteres');
   SCRIPT_PROPERTIES.setProperty('ADMIN_PASS', String(newPassword));
   return respondJson({ ok: true, message: 'Contraseña actualizada' });
+}
+
+function handleSetTeacherContact({ currentPassword, teacherEmail = '', teacherWhatsapp = '' }) {
+  const correctPass = SCRIPT_PROPERTIES.getProperty('ADMIN_PASS');
+  if (!correctPass) throw new Error('Sistema no configurado: falta ADMIN_PASS');
+  if (currentPassword !== correctPass) throw new Error('Contraseña actual incorrecta');
+
+  if (teacherEmail) SCRIPT_PROPERTIES.setProperty('TEACHER_EMAIL', String(teacherEmail).trim());
+  if (teacherWhatsapp) SCRIPT_PROPERTIES.setProperty('TEACHER_WHATSAPP', String(teacherWhatsapp).trim());
+
+  return respondJson({ ok: true, message: 'Datos de contacto actualizados' });
+}
+
+function handleGetNotifications(payload) {
+  const limit = Math.max(1, Math.min(parseInt(payload.limit, 10) || 20, 100));
+  const items = getAllRecords('notifications')
+    .filter(n => n.deleted !== true)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, limit);
+  return respondJson({ ok: true, data: items });
+}
+
+function handleMarkNotificationRead({ id }) {
+  if (!id) throw new Error('Notification id requerido');
+  updateRecord('notifications', id, { is_read: true, read_at: new Date().toISOString() });
+  return respondJson({ ok: true });
+}
+
+function createNotificationAndMaybeAlertTeacher({ type, title, message, student_id }) {
+  const id = Utilities.getUuid();
+  const record = {
+    id,
+    type,
+    title,
+    message,
+    student_id: student_id || '',
+    is_read: false,
+    created_at: new Date().toISOString(),
+    read_at: '',
+    deleted: false
+  };
+  insertRecord('notifications', record);
+
+  const teacherEmail = SCRIPT_PROPERTIES.getProperty('TEACHER_EMAIL');
+  if (teacherEmail) {
+    try {
+      MailApp.sendEmail(teacherEmail, title, message);
+    } catch (e) {
+      console.error('Email notification failed', e);
+    }
+  }
+
+  const teacherWhatsapp = SCRIPT_PROPERTIES.getProperty('TEACHER_WHATSAPP') || '';
+  const normalized = teacherWhatsapp.replace(/\D/g, '');
+  return normalized ? `https://wa.me/${normalized}?text=${encodeURIComponent(message)}` : '';
 }
 
 function verifyAuth(token) {

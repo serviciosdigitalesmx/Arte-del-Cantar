@@ -25,6 +25,9 @@
         .header-content { max-width: 1200px; width: 100%; display: flex; justify-content: space-between; align-items: center; }
         .logo-container { cursor: pointer; user-select: none; display: flex; align-items: center; }
         .logo-img { height: 50px; width: 50px; border-radius: 50%; background: #fff; padding: 2px; object-fit: contain; }
+        .lang-switch { display: inline-flex; gap: 0.35rem; align-items: center; }
+        .lang-pill { padding: 0.35rem 0.7rem; border-radius: 999px; border: 1px solid var(--glass); background: rgba(255,255,255,0.04); color: var(--text-muted); cursor: pointer; font-size: 0.85rem; }
+        .lang-pill.active { color: var(--text); border-color: var(--primary); background: rgba(42, 157, 143, 0.15); }
         main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
         .section { display: none; }
         .section.active { display: block; animation: fadeIn 0.4s ease; }
@@ -58,6 +61,9 @@
         .whatsapp-menu { display: none; flex-direction: column; gap: 0.45rem; }
         .whatsapp-menu.open { display: flex; }
         .whatsapp-menu .btn-action { width: 100%; }
+        .notifications-list { display: grid; gap: 0.75rem; }
+        .notification-item { background: var(--card-bg); border: 1px solid var(--glass); border-radius: 12px; padding: 1rem; }
+        .notification-item.unread { border-color: var(--primary); }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(200px, 1fr)); gap: 1rem; overflow-x: auto; }
         .calendar-day { background: var(--card-bg); border-radius: 12px; padding: 1rem; min-height: 300px; }
         .session-card { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; border-left: 3px solid var(--primary); }
@@ -77,7 +83,13 @@
             <img src="logo.jpg" alt="Logo" class="logo-img">
             <span style="font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--primary);">Arte del Cantar</span>
         </div>
-        <button id="logoutBtn" onclick="logoutAdmin()" class="btn-outline" style="display:none; padding:0.5rem 1rem;">Cerrar sesión</button>
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="lang-switch" aria-label="Language switch">
+                <button type="button" class="lang-pill active" id="lang-es" onclick="setLanguage('es')">ES</button>
+                <button type="button" class="lang-pill" id="lang-en" onclick="setLanguage('en')">EN</button>
+            </div>
+            <button id="logoutBtn" onclick="logoutAdmin()" class="btn-outline" style="display:none; padding:0.5rem 1rem;">Cerrar sesión</button>
+        </div>
     </div>
 </header>
 
@@ -85,8 +97,8 @@
     <!-- Sección pública -->
     <section id="publicSection" class="section active">
         <div class="hero">
-            <h1>Agenda tu clase de canto</h1>
-            <p>Déjanos tu disponibilidad y la maestra te contactará para confirmar tu horario.</p>
+            <h1 data-i18n="heroTitle">Agenda tu clase de canto</h1>
+            <p data-i18n="heroSubtitle">Déjanos tu disponibilidad y la maestra te contactará para confirmar tu horario.</p>
         </div>
         <div class="card">
             <form id="studentForm" onsubmit="submitStudentForm(event)">
@@ -106,7 +118,7 @@
                     <div class="form-group"><label>Clases por semana</label><input type="number" name="classes_per_week" value="1" min="1" max="5"></div>
                     <div class="form-group"><label>Comentarios</label><input type="text" name="comments"></div>
                 </div>
-                <button type="submit" class="btn btn-primary">Enviar disponibilidad</button>
+                <button type="submit" class="btn btn-primary" data-i18n="publicSubmit">Enviar disponibilidad</button>
             </form>
         </div>
     </section>
@@ -114,18 +126,36 @@
     <!-- Login -->
     <section id="loginSection" class="section">
         <div class="card" style="max-width:400px; margin:4rem auto;">
-            <h2 style="margin-bottom:1rem;">Acceso profesor</h2>
+            <h2 style="margin-bottom:1rem;" data-i18n="loginTitle">Acceso profesor</h2>
             <form onsubmit="loginAdmin(event)">
-                <div class="form-group"><label>Contraseña</label><input type="password" id="adminPass" required></div>
-                <button type="submit" class="btn btn-primary">Entrar</button>
-                <button type="button" class="btn-outline" style="margin-top:1rem; width:100%;" onclick="volverPublico()">Volver</button>
+                <div class="form-group"><label data-i18n="loginLabel">Contraseña</label><input type="password" id="adminPass" required></div>
+                <button type="submit" class="btn btn-primary" data-i18n="loginBtn">Entrar</button>
+                <button type="button" class="btn-outline" style="margin-top:1rem; width:100%;" onclick="volverPublico()" data-i18n="backBtn">Volver</button>
             </form>
             <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--glass);">
-                <h3 style="margin-bottom:1rem; font-size:0.95rem;">Cambiar contraseña</h3>
+                <h3 style="margin-bottom:1rem; font-size:0.95rem;" data-i18n="changePassTitle">Cambiar contraseña</h3>
                 <form onsubmit="changePassword(event)">
-                    <div class="form-group"><label>Contraseña actual</label><input type="password" id="currentPass" required></div>
-                    <div class="form-group"><label>Nueva contraseña</label><input type="password" id="newPass" required minlength="8"></div>
-                    <button type="submit" class="btn btn-outline" style="width:100%;">Actualizar contraseña</button>
+                    <div class="form-group"><label data-i18n="currentPass">Contraseña actual</label><input type="password" id="currentPass" required></div>
+                    <div class="form-group"><label data-i18n="newPass">Nueva contraseña</label><input type="password" id="newPass" required minlength="8"></div>
+                    <button type="submit" class="btn btn-outline" style="width:100%;" data-i18n="updatePass">Actualizar contraseña</button>
+                </form>
+            </div>
+            <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--glass);">
+                <h3 style="margin-bottom:1rem; font-size:0.95rem;">Contactos de notificación</h3>
+                <form onsubmit="saveTeacherContact(event)">
+                    <div class="form-group">
+                        <label>Email del profesor</label>
+                        <input type="email" id="teacherEmail" placeholder="teacher@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp del profesor</label>
+                        <input type="tel" id="teacherWhatsapp" placeholder="Con código de país">
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña actual</label>
+                        <input type="password" id="contactPass" required>
+                    </div>
+                    <button type="submit" class="btn btn-outline" style="width:100%;">Guardar contactos</button>
                 </form>
             </div>
         </div>
@@ -135,13 +165,15 @@
     <section id="dashboardSection" class="section">
         <div class="metrics-grid" id="metrics"></div>
         <div class="nav-tabs">
-            <button class="nav-btn active" onclick="switchDashTab('dash-solicitudes')">Solicitudes</button>
-            <button class="nav-btn" onclick="switchDashTab('dash-horarios')">Horarios</button>
-            <button class="nav-btn" onclick="switchDashTab('dash-asignaciones')">Asignaciones</button>
+            <button class="nav-btn active" onclick="switchDashTab('dash-solicitudes')" data-i18n="tabRequests">Solicitudes</button>
+            <button class="nav-btn" onclick="switchDashTab('dash-horarios')" data-i18n="tabSchedules">Horarios</button>
+            <button class="nav-btn" onclick="switchDashTab('dash-asignaciones')" data-i18n="tabAssignments">Asignaciones</button>
+            <button class="nav-btn" onclick="switchDashTab('dash-notificaciones')" data-i18n="tabNotifications">Notificaciones</button>
         </div>
         <div id="dash-solicitudes" class="dash-view active"><div class="students-grid" id="studentsGrid"></div></div>
         <div id="dash-horarios" class="dash-view"><div class="calendar-grid" id="calendarGrid"></div></div>
         <div id="dash-asignaciones" class="dash-view"><div class="calendar-grid" id="assignmentsGrid"></div></div>
+        <div id="dash-notificaciones" class="dash-view"><div class="notifications-list" id="notificationsList"></div></div>
     </section>
 </main>
 
@@ -158,6 +190,95 @@
     // ================= CONFIGURACIÓN =================
     // IMPORTANTE: Reemplaza esta URL con la de tu Web App desplegada
     const API_URL = localStorage.getItem('ARTEDELCANTAR_API_URL') || 'https://script.google.com/macros/s/AKfycbyGrbJViblrhKIZ8Yjfbq0b1CkHzq24d_QLfWsKoFnD6YOO-5RnF-HKkjRxioFGtoDxjw/exec';
+    let currentLang = localStorage.getItem('adcl_lang') || 'es';
+    const I18N = {
+        es: {
+            heroTitle: 'Agenda tu clase de canto',
+            heroSubtitle: 'Déjanos tu disponibilidad y la maestra te contactará para confirmar tu horario.',
+            loginTitle: 'Acceso profesor',
+            loginLabel: 'Contraseña',
+            loginBtn: 'Entrar',
+            backBtn: 'Volver',
+            changePassTitle: 'Cambiar contraseña',
+            currentPass: 'Contraseña actual',
+            newPass: 'Nueva contraseña',
+            updatePass: 'Actualizar contraseña',
+            logout: 'Cerrar sesión',
+            publicSubmit: 'Enviar disponibilidad',
+            tabRequests: 'Solicitudes',
+            tabSchedules: 'Horarios',
+            tabAssignments: 'Asignaciones',
+            tabNotifications: 'Notificaciones',
+            metricsPending: 'Pendientes',
+            metricsContacted: 'Contactados',
+            metricsAssigned: 'Asignados',
+            metricsActive: 'Activos',
+            metricsFree: 'Cupos libres',
+            notifEmpty: 'Sin notificaciones',
+            notifUnread: 'Sin leer',
+            notifRead: 'Leída',
+            notifTitle: 'Notificaciones',
+            notifSuccess: 'Nueva solicitud registrada',
+            publicSuccess: 'Disponibilidad enviada'
+        },
+        en: {
+            heroTitle: 'Book your singing lesson',
+            heroSubtitle: 'Leave your availability and the teacher will contact you to confirm your schedule.',
+            loginTitle: 'Teacher access',
+            loginLabel: 'Password',
+            loginBtn: 'Sign in',
+            backBtn: 'Back',
+            changePassTitle: 'Change password',
+            currentPass: 'Current password',
+            newPass: 'New password',
+            updatePass: 'Update password',
+            logout: 'Sign out',
+            publicSubmit: 'Send availability',
+            tabRequests: 'Requests',
+            tabSchedules: 'Schedules',
+            tabAssignments: 'Assignments',
+            tabNotifications: 'Notifications',
+            metricsPending: 'Pending',
+            metricsContacted: 'Contacted',
+            metricsAssigned: 'Assigned',
+            metricsActive: 'Active',
+            metricsFree: 'Free slots',
+            notifEmpty: 'No notifications',
+            notifUnread: 'Unread',
+            notifRead: 'Read',
+            notifTitle: 'Notifications',
+            notifSuccess: 'New request received',
+            publicSuccess: 'Availability sent'
+        }
+    };
+    function t(key) { return I18N[currentLang]?.[key] || I18N.es[key] || key; }
+    function setLanguage(lang) {
+        currentLang = lang === 'en' ? 'en' : 'es';
+        localStorage.setItem('adcl_lang', currentLang);
+        document.getElementById('lang-es').classList.toggle('active', currentLang === 'es');
+        document.getElementById('lang-en').classList.toggle('active', currentLang === 'en');
+        document.querySelector('[data-i18n="heroTitle"]').textContent = t('heroTitle');
+        document.querySelector('[data-i18n="heroSubtitle"]').textContent = t('heroSubtitle');
+        document.querySelector('[data-i18n="loginTitle"]').textContent = t('loginTitle');
+        document.querySelector('[data-i18n="loginLabel"]').textContent = t('loginLabel');
+        document.querySelector('[data-i18n="loginBtn"]').textContent = t('loginBtn');
+        document.querySelector('[data-i18n="backBtn"]').textContent = t('backBtn');
+        document.querySelector('[data-i18n="changePassTitle"]').textContent = t('changePassTitle');
+        document.querySelector('[data-i18n="currentPass"]').textContent = t('currentPass');
+        document.querySelector('[data-i18n="newPass"]').textContent = t('newPass');
+        document.querySelector('[data-i18n="updatePass"]').textContent = t('updatePass');
+        document.getElementById('logoutBtn').textContent = t('logout');
+        document.querySelector('[data-i18n="publicSubmit"]').textContent = t('publicSubmit');
+        document.querySelector('[data-i18n="tabRequests"]').textContent = t('tabRequests');
+        document.querySelector('[data-i18n="tabSchedules"]').textContent = t('tabSchedules');
+        document.querySelector('[data-i18n="tabAssignments"]').textContent = t('tabAssignments');
+        document.querySelector('[data-i18n="tabNotifications"]').textContent = t('tabNotifications');
+        document.querySelector('[data-i18n="metricsPending"]').textContent = t('metricsPending');
+        document.querySelector('[data-i18n="metricsContacted"]').textContent = t('metricsContacted');
+        document.querySelector('[data-i18n="metricsAssigned"]').textContent = t('metricsAssigned');
+        document.querySelector('[data-i18n="metricsActive"]').textContent = t('metricsActive');
+        document.querySelector('[data-i18n="metricsFree"]').textContent = t('metricsFree');
+    }
 
     // Variables globales
     let currentStudents = [];
@@ -209,9 +330,11 @@
         const days = Array.from(document.querySelectorAll('#daysGroup input:checked')).map(cb => cb.value);
         const times = Array.from(document.querySelectorAll('#timesGroup input:checked')).map(cb => cb.value);
         data.availability = { days, times };
-        api('createStudentRequest', data).then(() => {
-            alert('Disponibilidad enviada');
+        api('createStudentRequest', data).then((res) => {
+            alert(t('publicSuccess'));
             e.target.reset();
+            const teacherUrl = res?.data?.teacher_whatsapp_url;
+            if (teacherUrl) window.open(teacherUrl, '_blank', 'noopener,noreferrer');
         }).catch(()=>{});
     }
 
@@ -236,6 +359,17 @@
             alert(res.message || 'Contraseña actualizada');
             document.getElementById('currentPass').value = '';
             document.getElementById('newPass').value = '';
+        } catch (err) {}
+    }
+    async function saveTeacherContact(e) {
+        e.preventDefault();
+        const currentPassword = document.getElementById('contactPass').value;
+        const teacherEmail = document.getElementById('teacherEmail').value;
+        const teacherWhatsapp = document.getElementById('teacherWhatsapp').value;
+        try {
+            const res = await api('setTeacherContact', { currentPassword, teacherEmail, teacherWhatsapp });
+            alert(res.message || 'Contactos guardados');
+            document.getElementById('contactPass').value = '';
         } catch (err) {}
     }
     function logoutAdmin() { sessionStorage.removeItem('admin_token'); showSection('publicSection'); }
@@ -270,6 +404,9 @@
             currentSchedule = scheduleRes.data;
             renderCalendar();
             renderAssignments();
+
+            const notificationsRes = await api('getNotifications', { limit: 20 });
+            renderNotifications(notificationsRes.data || []);
         } catch(e) {}
     }
 
@@ -511,6 +648,31 @@
         `).join('');
     }
 
+    function renderNotifications(items) {
+        const grid = document.getElementById('notificationsList');
+        if (!grid) return;
+        if (!items.length) {
+            grid.innerHTML = `<div style="text-align:center; color:gray; padding:2rem;">${t('notifEmpty')}</div>`;
+            return;
+        }
+        grid.innerHTML = items.map(n => `
+            <div class="notification-item ${n.is_read ? '' : 'unread'}">
+                <div style="display:flex; justify-content:space-between; gap:1rem; align-items:flex-start;">
+                    <div>
+                        <div style="font-weight:600; margin-bottom:0.35rem;">${escapeHtml(n.title)}</div>
+                        <div style="color:var(--text-muted); font-size:0.9rem;">${escapeHtml(n.message)}</div>
+                    </div>
+                    <button class="btn-outline" style="padding:0.35rem 0.7rem; white-space:nowrap;" onclick="markNotificationRead('${escapeHtml(n.id)}')">${n.is_read ? t('notifRead') : t('notifUnread')}</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function markNotificationRead(id) {
+        await api('markNotificationRead', { id });
+        refreshDashboard();
+    }
+
     // Inicializar checkboxes del formulario público
     function initPublicForm() {
         const daysDiv = document.getElementById('daysGroup');
@@ -521,8 +683,7 @@
         timesDiv.innerHTML = horas.map(h => `<label class="checkbox-label"><input type="checkbox" value="${h}"> ${h}</label>`).join('');
     }
     initPublicForm();
-
-    // Si la API_URL contiene {{SCRIPT_URL}} se debe reemplazar, pero aquí queda como constante.
+    setLanguage(currentLang);
     if (API_URL === '{{SCRIPT_URL}}') console.warn('⚠️ Configura la variable API_URL con la URL de tu Web App');
 </script>
 </body>
