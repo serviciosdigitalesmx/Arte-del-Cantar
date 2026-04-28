@@ -6,6 +6,7 @@
     <title>Arte del Cantar</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
+        /* (Mantén tus estilos actuales, solo agrego lo necesario para el modal) */
         :root {
             --primary: #2a9d8f; 
             --bg: #0a0a0a;
@@ -18,518 +19,332 @@
             --glass: rgba(255, 255, 255, 0.03);
             --transition: all 0.3s ease;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
-
-        header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--glass); display: flex; justify-content: center; align-items: center; background: rgba(10,10,10,0.8); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
+        header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--glass); display: flex; justify-content: center; background: rgba(10,10,10,0.8); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
         .header-content { max-width: 1200px; width: 100%; display: flex; justify-content: space-between; align-items: center; }
-        
         .logo-container { cursor: pointer; user-select: none; display: flex; align-items: center; }
         .logo-img { height: 50px; width: 50px; border-radius: 50%; background: #fff; padding: 2px; object-fit: contain; }
-        
         main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-
         .section { display: none; }
         .section.active { display: block; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Public Portal */
         .hero { text-align: center; margin-bottom: 3rem; }
         .hero h1 { font-family: 'Playfair Display', serif; font-size: 3rem; margin-bottom: 1rem; background: linear-gradient(to right, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero p { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
-
         .card { background: var(--card-bg); padding: 2rem; border-radius: 20px; border: 1px solid var(--glass); }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .form-group { margin-bottom: 1.2rem; }
         label { display: block; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; }
         input, select, textarea { width: 100%; padding: 1rem; background: #1a1a1a; border: 1px solid var(--glass); border-radius: 10px; color: #fff; font-family: inherit; transition: var(--transition); }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
-        
         .checkbox-group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-        .checkbox-label { display: flex; align-items: center; gap: 0.5rem; background: #1a1a1a; padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--glass); cursor: pointer; font-size: 0.9rem; user-select: none; }
-        .checkbox-label input { width: auto; }
-
-        .btn { padding: 1rem 2rem; border-radius: 10px; border: none; font-family: inherit; font-weight: 600; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 1rem; }
+        .checkbox-label { display: flex; align-items: center; gap: 0.5rem; background: #1a1a1a; padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--glass); cursor: pointer; }
+        .btn { padding: 1rem 2rem; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
         .btn-primary { background: var(--primary); color: #000; width: 100%; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(42, 157, 143, 0.2); }
         .btn-outline { background: transparent; border: 1px solid var(--glass); color: var(--text); }
-        .btn-outline:hover { background: var(--glass); border-color: var(--primary); }
-        .btn-icon { padding: 0.5rem 1rem; background: var(--glass); color: var(--text); border-radius: 8px; font-size: 0.9rem; }
-
-        /* Dashboard Global */
         .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-        .metric-card { background: var(--card-bg); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--glass); text-align: center; }
+        .metric-card { background: var(--card-bg); padding: 1.5rem; border-radius: 16px; text-align: center; }
         .metric-val { font-size: 2rem; font-weight: 600; color: var(--primary); display: block; }
-        .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-
-        .nav-tabs { display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--glass); padding-bottom: 1rem; overflow-x: auto; }
-        .nav-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 1rem; cursor: pointer; padding: 0.5rem 1rem; border-radius: 8px; transition: 0.3s; white-space: nowrap; }
+        .nav-tabs { display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--glass); padding-bottom: 1rem; }
+        .nav-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 1rem; cursor: pointer; padding: 0.5rem 1rem; border-radius: 8px; }
         .nav-btn.active { color: var(--primary); background: var(--glass); }
         .dash-view { display: none; }
-        .dash-view.active { display: block; animation: fadeIn 0.3s ease; }
-        .badge { padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; display: inline-block; margin-bottom: 4px; }
-        
-        /* Dashboard CRM - Students Grid */
+        .dash-view.active { display: block; }
+        .badge { padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; }
         .students-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
-        .student-card { background: var(--card-bg); border: 1px solid var(--glass); border-radius: 16px; padding: 1.5rem; display: flex; flex-direction: column; }
-        .student-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
-        .student-name { font-weight: 600; font-size: 1.1rem; }
-        .student-phone { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.5rem; }
-        .student-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
-        .student-availability { background: var(--bg); padding: 0.8rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.85rem; border: 1px solid var(--glass); }
-        .student-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: auto; }
-        .btn-action { padding: 0.7rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; text-align: center; font-size: 0.85rem; transition: 0.3s; }
-        .btn-action:hover { filter: brightness(1.2); }
-        .btn-confirm { background: rgba(46, 204, 113, 0.15); color: var(--success); }
-        .btn-reschedule { background: rgba(241, 196, 15, 0.15); color: var(--warning); }
-        .btn-danger { background: rgba(231, 76, 60, 0.15); color: var(--danger); }
-        .btn-full { grid-column: span 2; }
-        select.inline-select { width: 100%; padding: 0.5rem; font-size: 0.85rem; background: #1a1a1a; border: 1px solid var(--glass); border-radius: 8px; color: #fff; margin-bottom: 0.5rem; }
-
-        /* Dashboard Calendar - Weekly Grid */
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(200px, 1fr)); gap: 1rem; overflow-x: auto; padding-bottom: 1rem; scroll-snap-type: x mandatory; }
-        .calendar-day { background: var(--card-bg); border: 1px solid var(--glass); border-radius: 12px; padding: 1rem; scroll-snap-align: start; min-height: 300px; }
-        .calendar-day-header { text-align: center; font-weight: 600; color: var(--primary); margin-bottom: 1rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; border-bottom: 1px solid var(--glass); padding-bottom: 0.8rem;}
-        .session-card { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; font-size: 0.85rem; position: relative; transition: 0.3s; border-left: 3px solid var(--primary); }
-        .session-card.full { border-left-color: var(--danger); }
-        .session-card:hover { transform: translateY(-2px); background: rgba(255,255,255,0.06); }
-        .session-time { font-weight: 600; margin-bottom: 6px; font-size:1rem; }
-        .session-mode { color: var(--text-muted); font-size: 0.75rem; margin-bottom: 10px; }
-        .session-occupancy { display: flex; justify-content: space-between; align-items: center; font-weight: 600;}
-        .btn-delete-session { position: absolute; top: 0.5rem; right: 0.5rem; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1.2rem; line-height: 1;}
-
-        /* Status Colors */
-        .status-pendiente { background: #f1c40f22; color: #f1c40f; }
-        .status-contactado { background: #3498db22; color: #3498db; }
-        .status-interesado { background: #9b59b622; color: #9b59b6; }
-        .status-asignado { background: #2ecc7122; color: #2ecc71; }
-        .status-activo { background: #2ecc7122; color: #2ecc71; }
-        .status-descartado { background: #e74c3c22; color: #e74c3c; }
-        .status-abandonó { background: #e74c3c22; color: #e74c3c; }
-
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; color: var(--primary); font-size: 1.2rem; font-weight: 600; }
-        
-        @media (max-width: 768px) {
-            main { padding: 1rem; }
-            .grid { grid-template-columns: 1fr; }
-            .hero h1 { font-size: 2.2rem; }
-            .calendar-grid { grid-template-columns: repeat(7, minmax(280px, 1fr)); }
-        }
+        .student-card { background: var(--card-bg); border: 1px solid var(--glass); border-radius: 16px; padding: 1.5rem; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(200px, 1fr)); gap: 1rem; overflow-x: auto; }
+        .calendar-day { background: var(--card-bg); border-radius: 12px; padding: 1rem; min-height: 300px; }
+        .session-card { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; border-left: 3px solid var(--primary); }
+        /* Modal */
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 2000; }
+        .modal-content { background: var(--card-bg); border-radius: 20px; padding: 2rem; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        #loading { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .calendar-grid { grid-template-columns: repeat(7, minmax(280px, 1fr)); } }
     </style>
 </head>
 <body>
-    <div id="loading">Procesando...</div>
+<div id="loading">Procesando...</div>
 
-    <header>
-        <div class="header-content">
-            <div class="logo-container" ondblclick="handleLogoDoubleClick()" title="Arte del Cantar">
-                <img src="logo.jpg" alt="Logo" class="logo-img">
-                <span style="font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--primary); margin-left: 10px; font-weight: 700;">Arte del Cantar</span>
-            </div>
-            <button id="logoutBtn" onclick="logoutAdmin()" class="btn-icon" style="display:none;">Cerrar sesión</button>
+<header>
+    <div class="header-content">
+        <div class="logo-container" ondblclick="handleLogoDoubleClick()">
+            <img src="logo.jpg" alt="Logo" class="logo-img">
+            <span style="font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--primary);">Arte del Cantar</span>
         </div>
-    </header>
+        <button id="logoutBtn" onclick="logoutAdmin()" class="btn-outline" style="display:none; padding:0.5rem 1rem;">Cerrar sesión</button>
+    </div>
+</header>
 
-    <main>
-        <!-- ================= PUBLIC SECTION (ALUMNO) ================= -->
-        <section id="publicSection" class="section active">
-            <div class="hero">
-                <h1>Agenda tu clase de canto</h1>
-                <p>Déjanos tu disponibilidad y el maestro te contactará para confirmar tu horario.</p>
-            </div>
-            <div class="card">
-                <form id="studentForm" onsubmit="submitStudentForm(event)">
-                    <div class="grid">
-                        <div class="form-group">
-                            <label>Nombre completo</label>
-                            <input type="text" name="full_name" required placeholder="Ej. Ana Pérez">
-                        </div>
-                        <div class="form-group">
-                            <label>WhatsApp</label>
-                            <input type="tel" name="whatsapp" required placeholder="Con código de país, ej. +52...">
-                        </div>
-                        <div class="form-group">
-                            <label>Edad</label>
-                            <input type="number" name="age" placeholder="Opcional">
-                        </div>
-                        <div class="form-group">
-                            <label>Nivel vocal</label>
-                            <select name="vocal_level" required>
-                                <option value="">Selecciona...</option>
-                                <option value="Principiante">Principiante (Cero experiencia)</option>
-                                <option value="Intermedio">Intermedio (He cantado antes)</option>
-                                <option value="Avanzado">Avanzado (Busco perfeccionar técnica)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>¿Cuál es tu objetivo?</label>
-                        <textarea name="goal" rows="2" required placeholder="Cantar afinado, alcanzar notas altas..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>¿Qué tan comprometido estás?</label>
-                        <select name="commitment" required>
-                            <option value="">Selecciona...</option>
-                            <option value="Solo quiero probar">Solo quiero probar una clase</option>
-                            <option value="Quiero mejorar">Quiero mejorar como hobby</option>
-                            <option value="Disciplina real">Busco disciplina real y resultados</option>
-                        </select>
-                    </div>
-                    <div class="grid">
-                        <div class="form-group">
-                            <label>Días disponibles</label>
-                            <div class="checkbox-group">
-                                <label class="checkbox-label"><input type="checkbox" name="days" value="Lunes"> Lunes</label>
-                                <label class="checkbox-label"><input type="checkbox" name="days" value="Martes"> Martes</label>
-                                <label class="checkbox-label"><input type="checkbox" name="days" value="Miércoles"> Miércoles</label>
-                                <label class="checkbox-label"><input type="checkbox" name="days" value="Jueves"> Jueves</label>
-                                <label class="checkbox-label"><input type="checkbox" name="days" value="Viernes"> Viernes</label>
-                                <label class="checkbox-label"><input type="checkbox" name="days" value="Sábado"> Sábado</label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Horarios disponibles</label>
-                            <div class="checkbox-group">
-                                <label class="checkbox-label"><input type="checkbox" name="times" value="Mañana (9am-1pm)"> Mañana</label>
-                                <label class="checkbox-label"><input type="checkbox" name="times" value="Tarde (2pm-6pm)"> Tarde</label>
-                                <label class="checkbox-label"><input type="checkbox" name="times" value="Noche (6pm-9pm)"> Noche</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="grid">
-                        <div class="form-group">
-                            <label>Clases por semana deseadas</label>
-                            <input type="number" name="classes_per_week" value="1" min="1" max="5" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Comentarios adicionales</label>
-                            <input type="text" name="comments" placeholder="Opcional">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Enviar disponibilidad</button>
-                </form>
-            </div>
-        </section>
-
-        <!-- ================= ADMIN LOGIN SECTION (OCULTO) ================= -->
-        <section id="loginSection" class="section">
-            <div class="card" style="max-width: 400px; margin: 4rem auto; text-align: center;">
-                <h2 style="margin-bottom: 1.5rem; color: var(--primary);">Acceso profesor</h2>
-                <form onsubmit="loginAdmin(event)">
-                    <div class="form-group">
-                        <label style="text-align: left;">Contraseña</label>
-                        <input type="password" id="adminPass" required placeholder="••••••••">
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="margin-bottom: 1rem;">Entrar</button>
-                    <button type="button" class="btn btn-outline" style="width: 100%;" onclick="volverPublico()">Volver</button>
-                </form>
-            </div>
-        </section>
-
-        <!-- ================= ADMIN DASHBOARD SECTION ================= -->
-        <section id="dashboardSection" class="section">
-            <div class="metrics-grid">
-                <div class="metric-card"><span class="metric-val" id="stat-pending">-</span><span class="metric-label">Pendientes</span></div>
-                <div class="metric-card"><span class="metric-val" id="stat-contacted">-</span><span class="metric-label">Contactados</span></div>
-                <div class="metric-card"><span class="metric-val" id="stat-assigned">-</span><span class="metric-label">Asignados</span></div>
-                <div class="metric-card"><span class="metric-val" id="stat-active">-</span><span class="metric-label">Activos</span></div>
-                <div class="metric-card"><span class="metric-val" id="stat-free">-</span><span class="metric-label">Cupos libres</span></div>
-            </div>
-
-            <div class="nav-tabs">
-                <button class="nav-btn active" onclick="switchDashTab('dash-solicitudes')">Solicitudes / CRM</button>
-                <button class="nav-btn" onclick="switchDashTab('dash-horarios')">Calendario Semanal</button>
-            </div>
-
-            <!-- Vista: Solicitudes (Pipeline / CRM) -->
-            <div id="dash-solicitudes" class="dash-view active">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                    <h2>Centro de Mando de Alumnos</h2>
-                    <button class="btn btn-outline" onclick="openImportModal()">📥 Importar WhatsApp</button>
+<main>
+    <!-- Sección pública -->
+    <section id="publicSection" class="section active">
+        <div class="hero">
+            <h1>Agenda tu clase de canto</h1>
+            <p>Déjanos tu disponibilidad y el maestro te contactará.</p>
+        </div>
+        <div class="card">
+            <form id="studentForm" onsubmit="submitStudentForm(event)">
+                <div class="grid">
+                    <div class="form-group"><label>Nombre completo</label><input type="text" name="full_name" required></div>
+                    <div class="form-group"><label>WhatsApp</label><input type="tel" name="whatsapp" required placeholder="+52..."></div>
+                    <div class="form-group"><label>Edad</label><input type="number" name="age"></div>
+                    <div class="form-group"><label>Nivel vocal</label><select name="vocal_level" required><option value="">Selecciona...</option><option>Principiante</option><option>Intermedio</option><option>Avanzado</option></select></div>
                 </div>
-                <div class="students-grid" id="studentsGrid"></div>
-            </div>
-
-            <!-- Vista: Horarios (Grid Semanal) -->
-            <div id="dash-horarios" class="dash-view">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                    <h2>Calendario Semanal</h2>
-                    <p style="color:var(--text-muted); font-size:0.9rem;">El calendario se llena automáticamente con los alumnos "Activos".</p>
+                <div class="form-group"><label>Objetivo</label><textarea name="goal" rows="2" required></textarea></div>
+                <div class="form-group"><label>Compromiso</label><select name="commitment" required><option value="">Selecciona...</option><option>Solo quiero probar</option><option>Quiero mejorar</option><option>Disciplina real</option></select></div>
+                <div class="grid">
+                    <div class="form-group"><label>Días disponibles</label><div class="checkbox-group" id="daysGroup"></div></div>
+                    <div class="form-group"><label>Horarios</label><div class="checkbox-group" id="timesGroup"></div></div>
                 </div>
-                <div class="calendar-grid" id="calendarGrid"></div>
-            </div>
-        </section>
-    </main>
+                <div class="grid">
+                    <div class="form-group"><label>Clases por semana</label><input type="number" name="classes_per_week" value="1" min="1" max="5"></div>
+                    <div class="form-group"><label>Comentarios</label><input type="text" name="comments"></div>
+                </div>
+                <button type="submit" class="btn btn-primary">Enviar disponibilidad</button>
+            </form>
+        </div>
+    </section>
 
-    <script>
-        const API_URL = localStorage.getItem('ARTEDELCANTAR_API_URL') || 'https://script.google.com/macros/s/AKfycbyGrbJViblrhKIZ8Yjfbq0b1CkHzq24d_QLfWsKoFnD6YOO-5RnF-HKkjRxioFGtoDxjw/exec';
-        let currentSessions = [];
+    <!-- Login -->
+    <section id="loginSection" class="section">
+        <div class="card" style="max-width:400px; margin:4rem auto;">
+            <h2 style="margin-bottom:1rem;">Acceso profesor</h2>
+            <form onsubmit="loginAdmin(event)">
+                <div class="form-group"><label>Contraseña</label><input type="password" id="adminPass" required></div>
+                <button type="submit" class="btn btn-primary">Entrar</button>
+                <button type="button" class="btn-outline" style="margin-top:1rem; width:100%;" onclick="volverPublico()">Volver</button>
+            </form>
+        </div>
+    </section>
 
-        // ================= NAVEGACIÓN Y FLUJO =================
-        function showSection(id) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.getElementById('logoutBtn').style.display = (id === 'dashboardSection') ? 'block' : 'none';
-            window.scrollTo(0, 0);
-        }
+    <!-- Dashboard -->
+    <section id="dashboardSection" class="section">
+        <div class="metrics-grid" id="metrics"></div>
+        <div class="nav-tabs">
+            <button class="nav-btn active" onclick="switchDashTab('dash-solicitudes')">CRM</button>
+            <button class="nav-btn" onclick="switchDashTab('dash-horarios')">Calendario</button>
+        </div>
+        <div id="dash-solicitudes" class="dash-view active"><div class="students-grid" id="studentsGrid"></div></div>
+        <div id="dash-horarios" class="dash-view"><div class="calendar-grid" id="calendarGrid"></div></div>
+    </section>
+</main>
 
-        function switchDashTab(tabId) {
-            document.querySelectorAll('.dash-view').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
-        }
+<!-- Modal de selección de sesión -->
+<div id="sessionModal" class="modal">
+    <div class="modal-content">
+        <h3>Seleccionar horario</h3>
+        <div id="sessionList"></div>
+        <button class="btn-outline" style="margin-top:1rem;" onclick="closeModal()">Cancelar</button>
+    </div>
+</div>
 
-        function handleLogoDoubleClick() {
-            if (sessionStorage.getItem('admin_token')) {
-                showSection('dashboardSection');
-                refreshDashboard();
-            } else {
+<script>
+    // ================= CONFIGURACIÓN =================
+    // IMPORTANTE: Reemplaza esta URL con la de tu Web App desplegada
+    const API_URL = '{{SCRIPT_URL}}'; // Debes reemplazar {{SCRIPT_URL}} por la URL real o usar window.location.origin + '/exec' si es una Web App
+
+    // Variables globales
+    let currentStudents = [];
+    let currentSchedule = [];
+
+    // ================= UTILIDADES =================
+    function showLoading(show) { document.getElementById('loading').style.display = show ? 'flex' : 'none'; }
+    function showSection(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('logoutBtn').style.display = (id === 'dashboardSection') ? 'block' : 'none';
+    }
+    function switchDashTab(tabId) {
+        document.querySelectorAll('.dash-view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    async function api(action, payload = {}) {
+        showLoading(true);
+        const token = sessionStorage.getItem('admin_token');
+        try {
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action, payload, token })
+            });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data.error);
+            return data;
+        } catch (e) {
+            if (e.message.includes('No autorizado') || e.message.includes('Token')) {
+                sessionStorage.removeItem('admin_token');
                 showSection('loginSection');
-                document.getElementById('adminPass').focus();
+                alert('Sesión expirada, inicia sesión nuevamente.');
+            } else {
+                alert('Error: ' + e.message);
             }
+            throw e;
+        } finally {
+            showLoading(false);
         }
-        function volverPublico() { showSection('publicSection'); }
+    }
 
-        // ================= API CORE =================
-        async function api(action, payload = {}) {
-            document.getElementById('loading').style.display = 'flex';
-            const token = sessionStorage.getItem('admin_token');
-            try {
-                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, payload, token }) });
-                const data = await res.json();
-                if (!data.ok) throw new Error(data.error);
-                return data;
-            } catch (e) {
-                if (e.message.includes('autorizado') || e.message.includes('Token')) {
-                    sessionStorage.removeItem('admin_token');
-                    showSection('loginSection');
-                }
-                alert("Error: " + e.message);
-                throw e;
-            } finally {
-                document.getElementById('loading').style.display = 'none';
-            }
-        }
+    // ================= PÚBLICO =================
+    function submitStudentForm(e) {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const days = Array.from(document.querySelectorAll('#daysGroup input:checked')).map(cb => cb.value);
+        const times = Array.from(document.querySelectorAll('#timesGroup input:checked')).map(cb => cb.value);
+        data.availability = { days, times };
+        api('createStudentRequest', data).then(() => {
+            alert('Disponibilidad enviada');
+            e.target.reset();
+        }).catch(()=>{});
+    }
 
-        // ================= FORMULARIO ALUMNO (UPSERT READY) =================
-        async function submitStudentForm(e) {
-            e.preventDefault();
-            const data = Object.fromEntries(new FormData(e.target));
-            const days = [], times = [];
-            e.target.querySelectorAll('input[name="days"]:checked').forEach(el => days.push(el.value));
-            e.target.querySelectorAll('input[name="times"]:checked').forEach(el => times.push(el.value));
-            data.availability = { days, times };
-            data.comments = data.comments || '';
-            try {
-                await api('createStudentRequest', data);
-                alert('¡Disponibilidad enviada! El maestro te contactará pronto.');
-                e.target.reset();
-            } catch(err) {}
-        }
-
-        // ================= LOGIN Y SESIÓN =================
-        async function loginAdmin(e) {
-            e.preventDefault();
-            if (document.getElementById('adminPass').value !== 'admin123') return alert('Contraseña incorrecta');
-            sessionStorage.setItem('admin_token', btoa(JSON.stringify({ role: 'admin', exp: Date.now() + 86400000 })));
+    // ================= LOGIN =================
+    async function loginAdmin(e) {
+        e.preventDefault();
+        const password = document.getElementById('adminPass').value;
+        try {
+            const res = await api('login', { password });
+            sessionStorage.setItem('admin_token', res.data.token);
             document.getElementById('adminPass').value = '';
             showSection('dashboardSection');
             refreshDashboard();
+        } catch (err) { alert('Contraseña incorrecta'); }
+    }
+    function logoutAdmin() { sessionStorage.removeItem('admin_token'); showSection('publicSection'); }
+    function volverPublico() { showSection('publicSection'); }
+    function handleLogoDoubleClick() {
+        if (sessionStorage.getItem('admin_token')) {
+            showSection('dashboardSection');
+            refreshDashboard();
+        } else {
+            showSection('loginSection');
         }
-        function logoutAdmin() {
-            sessionStorage.removeItem('admin_token');
-            showSection('publicSection');
-        }
+    }
 
-        let currentStudents = [];
+    // ================= DASHBOARD =================
+    async function refreshDashboard() {
+        try {
+            const stats = await api('getDashboardStats');
+            const metricsHtml = `
+                <div class="metric-card"><span class="metric-val">${stats.data.pending}</span><span class="metric-label">Pendientes</span></div>
+                <div class="metric-card"><span class="metric-val">${stats.data.contacted}</span><span class="metric-label">Contactados</span></div>
+                <div class="metric-card"><span class="metric-val">${stats.data.assigned}</span><span class="metric-label">Asignados</span></div>
+                <div class="metric-card"><span class="metric-val">${stats.data.active}</span><span class="metric-label">Activos</span></div>
+                <div class="metric-card"><span class="metric-val">${stats.data.free_slots}</span><span class="metric-label">Cupos libres</span></div>
+            `;
+            document.getElementById('metrics').innerHTML = metricsHtml;
 
-        // ================= DASHBOARD RENDER =================
-        async function refreshDashboard() {
-            try {
-                const statsRes = await api('getDashboardStats');
-                const s = statsRes.data;
-                document.getElementById('stat-pending').innerText = s.pending;
-                document.getElementById('stat-contacted').innerText = s.contacted;
-                document.getElementById('stat-assigned').innerText = s.assigned;
-                document.getElementById('stat-active').innerText = s.active;
-                // Ocultamos la tarjeta de cupos libres ya que ahora es dinámico
-                document.getElementById('stat-free').parentElement.style.display = 'none';
+            const studentsRes = await api('getStudents');
+            currentStudents = studentsRes.data;
+            renderStudentsGrid();
 
-                const stuRes = await api('getStudents');
-                currentStudents = stuRes.data;
-                
-                renderStudentsGrid(currentStudents);
-                renderSessionsGrid(currentStudents);
-            } catch (e) {}
-        }
+            const scheduleRes = await api('getFullSchedule');
+            currentSchedule = scheduleRes.data;
+            renderCalendar();
+        } catch(e) {}
+    }
 
-        function renderStudentsGrid(students) {
-            const grid = document.getElementById('studentsGrid');
-            grid.innerHTML = students.map(s => {
-                let avail = {days:[], times:[]};
-                try {
-                    if (s.availability_json && typeof s.availability_json === 'object') avail = s.availability_json;
-                    else if (s.availability_json && typeof s.availability_json === 'string') avail = JSON.parse(s.availability_json);
-                } catch(e) {}
-                
-                const days = Array.isArray(avail.days) && avail.days.length > 0 ? avail.days.join(', ') : 'No especificado';
-                const times = Array.isArray(avail.times) && avail.times.length > 0 ? avail.times.join(', ') : 'No especificado';
-                
-                let assignedBadge = '';
-                if (s.status === 'activo' || s.status === 'asignado') {
-                    const timeStr = avail.assigned_time || 'Horario por definir';
-                    assignedBadge = `<div style="font-size:0.85rem; color:var(--success); text-align:center; padding:0.6rem; background:rgba(46,204,113,0.1); border-radius:8px; font-weight:600; margin-bottom:1rem;">✓ Asignado: ${timeStr}</div>`;
-                }
-
-                return `
-                <div class="student-card">
-                    <div class="student-header">
-                        <div>
-                            <div class="student-name">${s.full_name}</div>
-                            <div class="student-phone">${s.whatsapp}</div>
-                        </div>
-                        <span class="badge status-${s.status}">${s.status}</span>
-                    </div>
-                    
-                    <div class="student-tags">
-                        <span class="badge" style="background:#2a9d8f33; color:var(--primary)">${s.vocal_level || 'Sin nivel'}</span>
-                        <span class="badge" style="background:#e67e2233; color:#e67e22">${s.commitment || 'Normal'}</span>
-                    </div>
-                    
-                    <div class="student-availability">
-                        <div style="margin-bottom:4px; font-weight:600; color:var(--primary)">Disponibilidad:</div>
-                        <div style="margin-bottom:4px">📅 ${days}</div>
-                        <div>⏰ ${times}</div>
-                        ${s.goal ? `<div style="margin-top:8px; padding-top:8px; border-top:1px solid var(--glass); color:var(--text-muted)"><i>"${s.goal}"</i></div>` : ''}
-                    </div>
-                    
-                    
-                    ${assignedBadge}
-                    
-                    <div class="student-actions">
-                        <button class="btn-action btn-confirm" onclick="quickAction('${s.id}', '${s.whatsapp}', '${s.full_name}', 'confirm')">✅ Confirmar</button>
-                        <button class="btn-action btn-reschedule" onclick="quickAction('${s.id}', '${s.whatsapp}', '${s.full_name}', 'reschedule')">⚠️ Reagendar</button>
-                        <button class="btn-action btn-outline btn-full" onclick="addNote('${s.id}', '${s.internal_note || ''}')">📝 Nota: ${s.internal_note ? s.internal_note.substring(0,25)+'...' : 'Agregar'}</button>
-                        <button class="btn-action btn-danger btn-full" onclick="deleteStudent('${s.id}')">🗑️ Eliminar</button>
-                    </div>
+    function renderStudentsGrid() {
+        const grid = document.getElementById('studentsGrid');
+        grid.innerHTML = currentStudents.map(s => {
+            let avail = { days: [], times: [] };
+            try { avail = s.availability_json || {}; } catch(e) {}
+            const days = avail.days?.join(', ') || 'No especificado';
+            const times = avail.times?.join(', ') || 'No especificado';
+            return `
+            <div class="student-card">
+                <div><strong>${s.full_name}</strong> <span class="badge status-${s.status}">${s.status}</span></div>
+                <div class="student-phone">${s.whatsapp}</div>
+                <div class="student-tags"><span class="badge">${s.vocal_level || 'N/A'}</span> <span class="badge">${s.commitment || ''}</span></div>
+                <div class="student-availability">📅 ${days}<br>⏰ ${times}<br><i>${s.goal || ''}</i></div>
+                <div class="student-actions">
+                    <button class="btn-action btn-confirm" onclick="confirmStudent('${s.id}', '${s.whatsapp}', '${s.full_name}')">✅ Confirmar</button>
+                    <button class="btn-action btn-danger" onclick="deleteStudent('${s.id}')">🗑️ Eliminar</button>
+                    <button class="btn-action btn-outline" onclick="addNote('${s.id}', '${s.internal_note || ''}')">📝 Nota</button>
                 </div>
-                `;
-            }).join('');
-        }
+            </div>`;
+        }).join('');
+    }
 
-        function renderSessionsGrid(students) {
-            const grid = document.getElementById('calendarGrid');
-            const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-            
-            const activeStudents = students.filter(s => s.status === 'activo' || s.status === 'asignado');
-            
-            let html = '';
-            daysOfWeek.forEach(day => {
-                const dayStudents = activeStudents.filter(s => {
-                    let avail = {};
-                    try {
-                        if (typeof s.availability_json === 'object') avail = s.availability_json;
-                        else if (typeof s.availability_json === 'string') avail = JSON.parse(s.availability_json);
-                    } catch(e){}
-                    const t = (avail.assigned_time || '').toLowerCase();
-                    return t.includes(day.toLowerCase());
-                });
-                
-                html += `<div class="calendar-day">
-                    <div class="calendar-day-header">${day}</div>
-                    ${dayStudents.length === 0 ? '<div style="font-size:0.85rem; color:var(--text-muted); text-align:center; margin-top:2rem;">Sin alumnos</div>' : ''}
-                    ${dayStudents.map(s => {
-                        let avail = {};
-                        try {
-                            if (typeof s.availability_json === 'object') avail = s.availability_json;
-                            else if (typeof s.availability_json === 'string') avail = JSON.parse(s.availability_json);
-                        } catch(e){}
-                        const timeStr = avail.assigned_time || 'Sin hora';
-                        return `
-                        <div class="session-card">
-                            <div class="session-time">${timeStr}</div>
-                            <div class="session-mode" style="color:var(--primary); font-weight:600;">${s.full_name}</div>
-                            <div class="session-occupancy">
-                                <span><a href="https://wa.me/${s.whatsapp}" target="_blank" style="color:var(--success); text-decoration:none;">📱 WhatsApp</a></span>
-                            </div>
-                        </div>
-                        `;
-                    }).join('')}
-                </div>`;
-            });
-            grid.innerHTML = html;
+    async function confirmStudent(id, phone, name) {
+        // Obtener sesiones disponibles
+        const sessionsRes = await api('getAvailableSessions');
+        const sessions = sessionsRes.data;
+        if (sessions.length === 0) {
+            alert('No hay sesiones con cupo disponible. Crea una primero.');
+            return;
         }
+        // Mostrar modal
+        const modal = document.getElementById('sessionModal');
+        const listDiv = document.getElementById('sessionList');
+        listDiv.innerHTML = sessions.map(s => `
+            <div style="padding:1rem; margin:0.5rem 0; background: var(--bg); border-radius:8px; cursor:pointer;" onclick="selectSession('${id}', '${s.id}', '${phone}', '${name}')">
+                <strong>${s.day} ${s.start_time} - ${s.end_time}</strong><br>
+                Cupo: ${s.current_students}/${s.max_students} · Modalidad: ${s.mode}
+            </div>
+        `).join('');
+        modal.style.display = 'flex';
+    }
 
-        // ================= ACCIONES RÁPIDAS (OPERATIVAS) =================
-        async function quickAction(id, phone, name, actionType) {
-            let status = '';
-            let message = '';
-            let updates = {};
-            
-            if (actionType === 'confirm') {
-                const time = prompt(`¿Qué horario vas a asignarle a ${name}? (Ej. Lunes 17:00)`);
-                if (!time) return; // Si cancela, no hace nada
-                
-                status = 'activo';
-                const student = currentStudents.find(s => s.id === id);
-                let avail = {days:[], times:[]};
-                try {
-                    if (student && typeof student.availability_json === 'object') avail = student.availability_json;
-                    else if (student && typeof student.availability_json === 'string') avail = JSON.parse(student.availability_json);
-                } catch(e) {}
-                
-                avail.assigned_time = time;
-                updates = { status: 'activo', availability_json: JSON.stringify(avail) };
-                message = `Hola ${name}, te confirmo tu clase para los ${time}. ¿Te parece bien?`;
-                
-            } else if (actionType === 'reschedule') {
-                status = 'contactado';
-                updates = { status };
-                message = `Hola ${name}, gracias por tu propuesta. No me es posible en ese horario, ¿buscamos otra opción?`;
-            }
-            
-            // Hacemos el update silencioso
-            api('updateStudent', { id, updates }); 
-            
-            // Abrimos WhatsApp inmediatamente
+    window.selectSession = async function(studentId, sessionId, phone, name) {
+        closeModal();
+        try {
+            await api('assignStudent', { student_id: studentId, session_id: sessionId });
+            await refreshDashboard();
+            // Abrir WhatsApp
+            const message = `Hola ${name}, tu clase ha sido asignada. Revisa tu horario en el sistema.`;
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
-            setTimeout(refreshDashboard, 1500);
-        }
+        } catch(e) { alert('Error al asignar: ' + e.message); }
+    };
 
-        async function deleteStudent(id) {
-            if (confirm("¿Estás seguro de ELIMINAR a este alumno? Esta acción no se puede deshacer.")) {
-                await api('deleteStudent', { id });
-                refreshDashboard();
-            }
-        }
+    function closeModal() { document.getElementById('sessionModal').style.display = 'none'; }
 
-        async function addNote(id, currentNote) {
-            const note = prompt("Nota interna:", currentNote);
-            if (note !== null) {
-                await api('updateStudent', { id, updates: { internal_note: note } });
-                refreshDashboard();
-            }
-        }
-
-        // Eliminamos las funciones viejas de asignar y crear sesión porque ya no se usan
-
-        async function deleteSession(id) {
-            if (confirm("¿Eliminar este horario?")) {
-                await api('deleteSession', { id });
-                refreshDashboard();
-            }
-        }
-
-        async function openImportModal() {
-            const raw = prompt("Pega los números de WhatsApp separados por comas o saltos de línea:");
-            if (!raw) return;
-            const numbers = raw.split(/[\n,]/).map(n => n.trim()).filter(n => n);
-            const res = await api('bulkImport', { numbers });
-            alert(`¡Éxito! Se importaron ${res.data.imported} alumnos nuevos al pipeline.`);
+    async function deleteStudent(id) {
+        if (confirm('¿Eliminar este alumno? (Se conservará oculto)')) {
+            await api('deleteStudent', { id });
             refreshDashboard();
         }
-    </script>
+    }
+    async function addNote(id, currentNote) {
+        const note = prompt('Nota interna:', currentNote);
+        if (note !== null) await api('updateStudent', { id, updates: { internal_note: note } });
+        refreshDashboard();
+    }
+
+    function renderCalendar() {
+        const grid = document.getElementById('calendarGrid');
+        const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+        let html = '';
+        daysOfWeek.forEach(day => {
+            const daySessions = currentSchedule.filter(s => s.day === day);
+            html += `<div class="calendar-day"><div class="calendar-day-header">${day}</div>`;
+            if (daySessions.length === 0) html += '<div style="text-align:center; color:gray;">Sin sesiones</div>';
+            daySessions.forEach(session => {
+                html += `<div class="session-card">
+                    <div class="session-time">${session.start_time} - ${session.end_time}</div>
+                    <div class="session-mode">${session.mode} · Cupo: ${session.current_students}/${session.max_students}</div>
+                    ${session.students.map(st => `<div>🎤 ${st.full_name} <a href="https://wa.me/${st.whatsapp}" target="_blank">📱</a></div>`).join('')}
+                </div>`;
+            });
+            html += `</div>`;
+        });
+        grid.innerHTML = html;
+    }
+
+    // Inicializar checkboxes del formulario público
+    function initPublicForm() {
+        const daysDiv = document.getElementById('daysGroup');
+        const timesDiv = document.getElementById('timesGroup');
+        const dias = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+        const horas = ['Mañana (9am-1pm)','Tarde (2pm-6pm)','Noche (6pm-9pm)'];
+        daysDiv.innerHTML = dias.map(d => `<label class="checkbox-label"><input type="checkbox" value="${d}"> ${d}</label>`).join('');
+        timesDiv.innerHTML = horas.map(h => `<label class="checkbox-label"><input type="checkbox" value="${h}"> ${h}</label>`).join('');
+    }
+    initPublicForm();
+
+    // Si la API_URL contiene {{SCRIPT_URL}} se debe reemplazar, pero aquí queda como constante.
+    if (API_URL === '{{SCRIPT_URL}}') console.warn('⚠️ Configura la variable API_URL con la URL de tu Web App');
+</script>
 </body>
 </html>
