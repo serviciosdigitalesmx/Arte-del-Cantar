@@ -98,7 +98,7 @@
     <section id="publicSection" class="section active">
         <div class="hero">
             <h1 data-i18n="heroTitle">Agenda tu clase de canto</h1>
-            <p data-i18n="heroSubtitle">Déjanos tu disponibilidad y la maestra te contactará para confirmar tu horario.</p>
+            <p data-i18n="heroSubtitle">Déjanos tu disponibilidad y el maestro te contactará para confirmar tu horario.</p>
         </div>
         <div class="card">
             <form id="studentForm" onsubmit="submitStudentForm(event)">
@@ -196,7 +196,7 @@
     const I18N = {
         es: {
             heroTitle: 'Agenda tu clase de canto',
-            heroSubtitle: 'Déjanos tu disponibilidad y la maestra te contactará para confirmar tu horario.',
+            heroSubtitle: 'Déjanos tu disponibilidad y el maestro te contactará para confirmar tu horario.',
             loginTitle: 'Acceso profesor',
             loginLabel: 'Contraseña',
             loginBtn: 'Entrar',
@@ -565,11 +565,11 @@
 
         switch (type) {
             case 'confirm_schedule':
-                return `Hola ${name}, soy tu maestra de Arte del Cantar.\n\nVi tu registro y tengo disponible este horario para tu clase de canto:\n\n📅 Día: ${day}\n🕒 Hora: ${time}\n🎵 Modalidad: ${modality}\n\n¿Me confirmas si te queda bien?`;
+                return `Hola ${name}, soy tu maestro de Arte del Cantar.\n\nVi tu registro y tengo disponible este horario para tu clase de canto:\n\n📅 Día: ${day}\n🕒 Hora: ${time}\n🎵 Modalidad: ${modality}\n\n¿Me confirmas si te queda bien?`;
             case 'send_options':
-                return `Hola ${name}, soy tu maestra de Arte del Cantar.\n\nVi tu disponibilidad y te puedo ofrecer estas opciones:\n\n1) ${options[0]}\n2) ${options[1] || 'Opción 2'}\n3) ${options[2] || 'Opción 3'}\n\n¿Cuál te queda mejor?`;
+                return `Hola ${name}, soy tu maestro de Arte del Cantar.\n\nVi tu disponibilidad y te puedo ofrecer estas opciones:\n\n1) ${options[0]}\n2) ${options[1] || 'Opción 2'}\n3) ${options[2] || 'Opción 3'}\n\n¿Cuál te queda mejor?`;
             case 'request_more':
-                return `Hola ${name}, soy tu maestra de Arte del Cantar.\n\nGracias por registrarte. Vi tu disponibilidad, pero necesito que me compartas un poco más de opciones para poder acomodarte mejor.\n\n¿Me podrías decir qué otros días u horarios tienes disponibles?`;
+                return `Hola ${name}, soy tu maestro de Arte del Cantar.\n\nGracias por registrarte. Vi tu disponibilidad, pero necesito que me compartas un poco más de opciones para poder acomodarte mejor.\n\n¿Me podrías decir qué otros días u horarios tienes disponibles?`;
             case 'first_class':
                 return `Hola ${name}, perfecto.\n\nTe confirmo tu primera clase de canto:\n\n📅 Día: ${day}\n🕒 Hora: ${time}\n🎵 Modalidad: ${modality}\n\nPor favor llega unos minutos antes o conéctate puntual.\n\nNos vemos en clase.`;
             case 'reminder':
@@ -768,7 +768,7 @@
                 ${session.students.map(st => `
                     <div style="margin-top:0.5rem;">
                         <strong>${escapeHtml(st.full_name)}</strong>
-                        <a href="https://wa.me/${normalizeWhatsapp(st.whatsapp)}?text=${encodeURIComponent('Hola, soy tu maestra de Arte del Cantar. Vi tu disponibilidad y quiero confirmar tu horario para clase.')}" target="_blank" rel="noopener noreferrer"> WhatsApp</a>
+                        <a href="https://wa.me/${normalizeWhatsapp(st.whatsapp)}?text=${encodeURIComponent('Hola, soy tu maestro de Arte del Cantar. Vi tu disponibilidad y quiero confirmar tu horario para clase.')}" target="_blank" rel="noopener noreferrer"> WhatsApp</a>
                     </div>
                 `).join('')}
             </div>
