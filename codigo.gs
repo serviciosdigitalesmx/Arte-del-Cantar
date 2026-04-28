@@ -62,6 +62,7 @@ function doPost(e) {
       case 'getStudents': return respondJson({ ok: true, data: getAllRecords('student_requests') });
       case 'getSessions': return respondJson({ ok: true, data: getAllRecords('sessions') });
       case 'updateStudent': return handleUpdateStudent(payload);
+      case 'deleteStudent': return handleDeleteStudent(payload);
       case 'bulkImport': return handleBulkImport(payload);
       case 'createSession': return handleCreateSession(payload);
       case 'deleteSession': return handleDeleteSession(payload);
@@ -75,24 +76,41 @@ function doPost(e) {
 // ==================== 3. LÓGICA DE NEGOCIO ====================
 
 function handleCreateStudentRequest(data) {
-  const id = Utilities.getUuid();
-  const record = {
-    id,
-    full_name: data.full_name,
-    whatsapp: data.whatsapp.replace(/\D/g, ''),
-    age: data.age || '',
-    vocal_level: data.vocal_level,
-    commitment: data.commitment || 'interesado',
-    goal: data.goal,
-    availability_json: JSON.stringify(data.availability || {}),
-    classes_per_week: data.classes_per_week || 1,
-    status: 'pendiente',
-    internal_note: '',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
-  insertRecord('student_requests', record);
-  return respondJson({ ok: true, data: { id } });
+  const cleanPhone = data.whatsapp ? data.whatsapp.replace(/\D/g, '') : '';
+  const existing = getAllRecords('student_requests').find(s => s.whatsapp === cleanPhone);
+
+  if (existing) {
+    const updates = {
+      availability_json: JSON.stringify(data.availability || {}),
+      updated_at: new Date().toISOString(),
+      status: 'pendiente' // Regresamos a pendiente para que el profe lo note
+    };
+    if (data.full_name) updates.full_name = data.full_name;
+    if (data.vocal_level) updates.vocal_level = data.vocal_level;
+    if (data.goal) updates.goal = data.goal;
+    
+    updateRecord('student_requests', existing.id, updates);
+    return respondJson({ ok: true, message: 'Disponibilidad actualizada exitosamente' });
+  } else {
+    const id = Utilities.getUuid();
+    const record = {
+      id,
+      full_name: data.full_name,
+      whatsapp: cleanPhone,
+      age: data.age || '',
+      vocal_level: data.vocal_level,
+      commitment: data.commitment || 'interesado',
+      goal: data.goal,
+      availability_json: JSON.stringify(data.availability || {}),
+      classes_per_week: data.classes_per_week || 1,
+      status: 'pendiente',
+      internal_note: '',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    insertRecord('student_requests', record);
+    return respondJson({ ok: true, message: 'Alumno registrado exitosamente', data: { id } });
+  }
 }
 
 function handleGetDashboardStats() {
@@ -143,6 +161,15 @@ function handleCreateSession(data) {
   };
   insertRecord('sessions', record);
   return respondJson({ ok: true, data: record });
+}
+
+function handleDeleteStudent({ id }) {
+  const sheet = getSpreadsheet().getSheetByName('student_requests');
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === id) { sheet.deleteRow(i + 1); break; }
+  }
+  return respondJson({ ok: true, message: 'Alumno eliminado' });
 }
 
 // ==================== 4. UTILIDADES CORE ====================

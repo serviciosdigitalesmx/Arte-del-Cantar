@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #2a9d8f; /* Verde azulado del logo */
+            --primary: #2a9d8f; 
             --bg: #0a0a0a;
             --card-bg: #141414;
             --text: #ffffff;
@@ -39,7 +39,6 @@
         .hero h1 { font-family: 'Playfair Display', serif; font-size: 3rem; margin-bottom: 1rem; background: linear-gradient(to right, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .hero p { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
 
-        /* Forms */
         .card { background: var(--card-bg); padding: 2rem; border-radius: 20px; border: 1px solid var(--glass); }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .form-group { margin-bottom: 1.2rem; }
@@ -51,15 +50,14 @@
         .checkbox-label { display: flex; align-items: center; gap: 0.5rem; background: #1a1a1a; padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--glass); cursor: pointer; font-size: 0.9rem; user-select: none; }
         .checkbox-label input { width: auto; }
 
-        /* Buttons */
         .btn { padding: 1rem 2rem; border-radius: 10px; border: none; font-family: inherit; font-weight: 600; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 1rem; }
         .btn-primary { background: var(--primary); color: #000; width: 100%; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(42, 157, 143, 0.2); }
         .btn-outline { background: transparent; border: 1px solid var(--glass); color: var(--text); }
         .btn-outline:hover { background: var(--glass); border-color: var(--primary); }
         .btn-icon { padding: 0.5rem 1rem; background: var(--glass); color: var(--text); border-radius: 8px; font-size: 0.9rem; }
 
-        /* Dashboard */
+        /* Dashboard Global */
         .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
         .metric-card { background: var(--card-bg); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--glass); text-align: center; }
         .metric-val { font-size: 2rem; font-weight: 600; color: var(--primary); display: block; }
@@ -70,13 +68,38 @@
         .nav-btn.active { color: var(--primary); background: var(--glass); }
         .dash-view { display: none; }
         .dash-view.active { display: block; animation: fadeIn 0.3s ease; }
-
-        .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--glass); vertical-align: top; }
-        th { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; }
-        
         .badge { padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; display: inline-block; margin-bottom: 4px; }
+        
+        /* Dashboard CRM - Students Grid */
+        .students-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+        .student-card { background: var(--card-bg); border: 1px solid var(--glass); border-radius: 16px; padding: 1.5rem; display: flex; flex-direction: column; }
+        .student-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+        .student-name { font-weight: 600; font-size: 1.1rem; }
+        .student-phone { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.5rem; }
+        .student-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .student-availability { background: var(--bg); padding: 0.8rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.85rem; border: 1px solid var(--glass); }
+        .student-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: auto; }
+        .btn-action { padding: 0.7rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; text-align: center; font-size: 0.85rem; transition: 0.3s; }
+        .btn-action:hover { filter: brightness(1.2); }
+        .btn-confirm { background: rgba(46, 204, 113, 0.15); color: var(--success); }
+        .btn-reschedule { background: rgba(241, 196, 15, 0.15); color: var(--warning); }
+        .btn-danger { background: rgba(231, 76, 60, 0.15); color: var(--danger); }
+        .btn-full { grid-column: span 2; }
+        select.inline-select { width: 100%; padding: 0.5rem; font-size: 0.85rem; background: #1a1a1a; border: 1px solid var(--glass); border-radius: 8px; color: #fff; margin-bottom: 0.5rem; }
+
+        /* Dashboard Calendar - Weekly Grid */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(200px, 1fr)); gap: 1rem; overflow-x: auto; padding-bottom: 1rem; scroll-snap-type: x mandatory; }
+        .calendar-day { background: var(--card-bg); border: 1px solid var(--glass); border-radius: 12px; padding: 1rem; scroll-snap-align: start; min-height: 300px; }
+        .calendar-day-header { text-align: center; font-weight: 600; color: var(--primary); margin-bottom: 1rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; border-bottom: 1px solid var(--glass); padding-bottom: 0.8rem;}
+        .session-card { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; font-size: 0.85rem; position: relative; transition: 0.3s; border-left: 3px solid var(--primary); }
+        .session-card.full { border-left-color: var(--danger); }
+        .session-card:hover { transform: translateY(-2px); background: rgba(255,255,255,0.06); }
+        .session-time { font-weight: 600; margin-bottom: 6px; font-size:1rem; }
+        .session-mode { color: var(--text-muted); font-size: 0.75rem; margin-bottom: 10px; }
+        .session-occupancy { display: flex; justify-content: space-between; align-items: center; font-weight: 600;}
+        .btn-delete-session { position: absolute; top: 0.5rem; right: 0.5rem; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1.2rem; line-height: 1;}
+
+        /* Status Colors */
         .status-pendiente { background: #f1c40f22; color: #f1c40f; }
         .status-contactado { background: #3498db22; color: #3498db; }
         .status-interesado { background: #9b59b622; color: #9b59b6; }
@@ -85,15 +108,13 @@
         .status-descartado { background: #e74c3c22; color: #e74c3c; }
         .status-abandonó { background: #e74c3c22; color: #e74c3c; }
 
-        .btn-wa { background: #25d366; color: #fff; text-decoration: none; font-size: 0.8rem; padding: 0.4rem 0.8rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; }
-        
-        select.inline-select { width: 100%; padding: 0.4rem; font-size: 0.8rem; background: #1a1a1a; border: 1px solid var(--glass); border-radius: 6px; color: #fff; margin-top: 0.4rem; }
-
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; color: var(--primary); font-size: 1.2rem; font-weight: 600; }
         
         @media (max-width: 768px) {
+            main { padding: 1rem; }
             .grid { grid-template-columns: 1fr; }
             .hero h1 { font-size: 2.2rem; }
+            .calendar-grid { grid-template-columns: repeat(7, minmax(280px, 1fr)); }
         }
     </style>
 </head>
@@ -102,7 +123,6 @@
 
     <header>
         <div class="header-content">
-            <!-- Doble clic en el logo para acceso oculto -->
             <div class="logo-container" ondblclick="handleLogoDoubleClick()" title="Arte del Cantar">
                 <img src="logo.jpg" alt="Logo" class="logo-img">
                 <span style="font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--primary); margin-left: 10px; font-weight: 700;">Arte del Cantar</span>
@@ -143,12 +163,10 @@
                             </select>
                         </div>
                     </div>
-                    
                     <div class="form-group">
                         <label>¿Cuál es tu objetivo?</label>
-                        <textarea name="goal" rows="2" required placeholder="Cantar afinado, alcanzar notas altas, preparar un casting..."></textarea>
+                        <textarea name="goal" rows="2" required placeholder="Cantar afinado, alcanzar notas altas..."></textarea>
                     </div>
-                    
                     <div class="form-group">
                         <label>¿Qué tan comprometido estás?</label>
                         <select name="commitment" required>
@@ -158,7 +176,6 @@
                             <option value="Disciplina real">Busco disciplina real y resultados</option>
                         </select>
                     </div>
-
                     <div class="grid">
                         <div class="form-group">
                             <label>Días disponibles</label>
@@ -180,7 +197,6 @@
                             </div>
                         </div>
                     </div>
-                    
                     <div class="grid">
                         <div class="form-group">
                             <label>Clases por semana deseadas</label>
@@ -191,7 +207,6 @@
                             <input type="text" name="comments" placeholder="Opcional">
                         </div>
                     </div>
-
                     <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Enviar disponibilidad</button>
                 </form>
             </div>
@@ -214,7 +229,6 @@
 
         <!-- ================= ADMIN DASHBOARD SECTION ================= -->
         <section id="dashboardSection" class="section">
-            <!-- Resumen -->
             <div class="metrics-grid">
                 <div class="metric-card"><span class="metric-val" id="stat-pending">-</span><span class="metric-label">Pendientes</span></div>
                 <div class="metric-card"><span class="metric-val" id="stat-contacted">-</span><span class="metric-label">Contactados</span></div>
@@ -223,61 +237,34 @@
                 <div class="metric-card"><span class="metric-val" id="stat-free">-</span><span class="metric-label">Cupos libres</span></div>
             </div>
 
-            <!-- Navegación interna del dashboard -->
             <div class="nav-tabs">
                 <button class="nav-btn active" onclick="switchDashTab('dash-solicitudes')">Solicitudes / CRM</button>
-                <button class="nav-btn" onclick="switchDashTab('dash-horarios')">Horarios de Clase</button>
+                <button class="nav-btn" onclick="switchDashTab('dash-horarios')">Calendario Semanal</button>
             </div>
 
-            <!-- Vista: Solicitudes (Pipeline) -->
+            <!-- Vista: Solicitudes (Pipeline / CRM) -->
             <div id="dash-solicitudes" class="dash-view active">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; align-items: center;">
-                    <h2>Gestión de Alumnos</h2>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <h2>Centro de Mando de Alumnos</h2>
                     <button class="btn btn-outline" onclick="openImportModal()">📥 Importar WhatsApp</button>
                 </div>
-                <div class="card table-container">
-                    <table id="studentsTable">
-                        <thead>
-                            <tr>
-                                <th>Alumno</th>
-                                <th>Nivel / Compromiso</th>
-                                <th>Disponibilidad</th>
-                                <th>Estado</th>
-                                <th>Gestión y Asignación</th>
-                            </tr>
-                        </thead>
-                        <tbody id="studentsBody"></tbody>
-                    </table>
-                </div>
+                <div class="students-grid" id="studentsGrid"></div>
             </div>
 
-            <!-- Vista: Horarios -->
+            <!-- Vista: Horarios (Grid Semanal) -->
             <div id="dash-horarios" class="dash-view">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; align-items: center;">
-                    <h2>Configuración de Horarios</h2>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <h2>Calendario Semanal</h2>
                     <button class="btn btn-primary" onclick="openNewSession()">+ Crear Horario</button>
                 </div>
-                <div class="card table-container">
-                    <table id="sessionsTable">
-                        <thead>
-                            <tr>
-                                <th>Día</th>
-                                <th>Horario</th>
-                                <th>Modalidad</th>
-                                <th>Ocupación</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sessionsBody"></tbody>
-                    </table>
-                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
             </div>
         </section>
     </main>
 
     <script>
         const API_URL = localStorage.getItem('ARTEDELCANTAR_API_URL') || 'https://script.google.com/macros/s/AKfycbyqq8TbwiwRjkwEazwXbT5pVKTj8PXyWMAq1Pm8-UiyTg_m_crBG2fzM4mV_9OPKAPHVA/exec';
-        let currentSessions = []; // Para poblar los dropdowns de asignación
+        let currentSessions = [];
 
         // ================= NAVEGACIÓN Y FLUJO =================
         function showSection(id) {
@@ -295,9 +282,7 @@
         }
 
         function handleLogoDoubleClick() {
-            // El truco de magia: si hay token, va al dash. Si no, va al login.
-            const token = sessionStorage.getItem('admin_token');
-            if (token) {
+            if (sessionStorage.getItem('admin_token')) {
                 showSection('dashboardSection');
                 refreshDashboard();
             } else {
@@ -305,20 +290,14 @@
                 document.getElementById('adminPass').focus();
             }
         }
-
-        function volverPublico() {
-            showSection('publicSection');
-        }
+        function volverPublico() { showSection('publicSection'); }
 
         // ================= API CORE =================
         async function api(action, payload = {}) {
             document.getElementById('loading').style.display = 'flex';
             const token = sessionStorage.getItem('admin_token');
             try {
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action, payload, token })
-                });
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, payload, token }) });
                 const data = await res.json();
                 if (!data.ok) throw new Error(data.error);
                 return data;
@@ -334,55 +313,39 @@
             }
         }
 
-        // ================= FORMULARIO ALUMNO =================
+        // ================= FORMULARIO ALUMNO (UPSERT READY) =================
         async function submitStudentForm(e) {
             e.preventDefault();
             const data = Object.fromEntries(new FormData(e.target));
-            
-            // Los checkboxes necesitan extracción especial
-            const days = [];
-            const times = [];
+            const days = [], times = [];
             e.target.querySelectorAll('input[name="days"]:checked').forEach(el => days.push(el.value));
             e.target.querySelectorAll('input[name="times"]:checked').forEach(el => times.push(el.value));
-            
             data.availability = { days, times };
             data.comments = data.comments || '';
-            
             try {
                 await api('createStudentRequest', data);
                 alert('¡Disponibilidad enviada! El maestro te contactará pronto.');
                 e.target.reset();
-            } catch(err) {
-                // error se maneja en api()
-            }
+            } catch(err) {}
         }
 
         // ================= LOGIN Y SESIÓN =================
         async function loginAdmin(e) {
             e.preventDefault();
-            const password = document.getElementById('adminPass').value;
-            if (password !== 'admin123') {
-                alert('Contraseña incorrecta');
-                return;
-            }
-            
-            // Generamos el token localmente para evitar problemas de sincronización con el backend
-            const token = btoa(JSON.stringify({ role: 'admin', exp: Date.now() + 86400000 }));
-            sessionStorage.setItem('admin_token', token);
+            if (document.getElementById('adminPass').value !== 'admin123') return alert('Contraseña incorrecta');
+            sessionStorage.setItem('admin_token', btoa(JSON.stringify({ role: 'admin', exp: Date.now() + 86400000 })));
             document.getElementById('adminPass').value = '';
             showSection('dashboardSection');
             refreshDashboard();
         }
-
         function logoutAdmin() {
             sessionStorage.removeItem('admin_token');
             showSection('publicSection');
         }
 
-        // ================= DASHBOARD (PROFESOR) =================
+        // ================= DASHBOARD RENDER =================
         async function refreshDashboard() {
             try {
-                // 1. Cargar métricas
                 const statsRes = await api('getDashboardStats');
                 const s = statsRes.data;
                 document.getElementById('stat-pending').innerText = s.pending;
@@ -391,112 +354,130 @@
                 document.getElementById('stat-active').innerText = s.active;
                 document.getElementById('stat-free').innerText = s.free_slots;
 
-                // 2. Cargar horarios para la tabla y para el dropdown de asignación
                 const sessRes = await api('getSessions');
                 currentSessions = sessRes.data;
-                renderSessionsTable(currentSessions);
+                renderSessionsGrid(currentSessions);
 
-                // 3. Cargar alumnos
                 const stuRes = await api('getStudents');
-                renderStudentsTable(stuRes.data);
+                renderStudentsGrid(stuRes.data);
             } catch (e) {}
         }
 
-        function renderStudentsTable(students) {
-            const body = document.getElementById('studentsBody');
-            body.innerHTML = students.map(s => {
+        function renderStudentsGrid(students) {
+            const grid = document.getElementById('studentsGrid');
+            grid.innerHTML = students.map(s => {
                 const avail = s.availability_json ? JSON.parse(s.availability_json) : {days:[], times:[]};
                 const days = Array.isArray(avail.days) && avail.days.length > 0 ? avail.days.join(', ') : 'No especificado';
-                const times = Array.isArray(avail.times) && avail.times.length > 0 ? avail.times.join(', ') : '';
+                const times = Array.isArray(avail.times) && avail.times.length > 0 ? avail.times.join(', ') : 'No especificado';
                 
-                // Mensaje de WhatsApp precargado
-                const msg = encodeURIComponent("Hola, soy tu maestro de Arte del Cantar. Vi tu disponibilidad y quiero confirmar tu horario para clase.");
-                
-                // Opciones de Asignación (Horarios que tengan cupo)
-                let sessionOptions = `<option value="">Asignar a un horario...</option>`;
+                let sessionOptions = `<option value="">Asignar a horario...</option>`;
                 currentSessions.forEach(sess => {
                     if(sess.is_active && sess.current_students < sess.max_students) {
                         sessionOptions += `<option value="${sess.id}">${sess.day} ${sess.start_time} (${sess.max_students - sess.current_students} libres)</option>`;
                     }
                 });
 
-                const internalNote = s.internal_note ? `<i>" ${s.internal_note} "</i>` : '';
-
                 return `
-                <tr>
-                    <td>
-                        <div style="font-weight:600">${s.full_name}</div>
-                        <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.5rem;">${s.whatsapp}</div>
-                        <a href="https://wa.me/${s.whatsapp}?text=${msg}" target="_blank" class="btn-wa">💬 WhatsApp</a>
-                    </td>
-                    <td>
-                        <div style="font-size:0.8rem; margin-bottom:4px;"><b>Nivel:</b> ${s.vocal_level || '-'}</div>
-                        <div style="font-size:0.8rem; margin-bottom:4px;"><b>Objetivo:</b> ${s.goal || '-'}</div>
-                        <div style="font-size:0.75rem; color:var(--primary); border:1px solid var(--primary); display:inline-block; padding:2px 6px; border-radius:4px; margin-top:4px;">${s.commitment || 'Desconocido'}</div>
-                    </td>
-                    <td>
-                        <div style="font-size:0.8rem; margin-bottom:4px;"><b>Días:</b> ${days}</div>
-                        <div style="font-size:0.8rem;"><b>Horas:</b> ${times}</div>
-                    </td>
-                    <td>
+                <div class="student-card">
+                    <div class="student-header">
+                        <div>
+                            <div class="student-name">${s.full_name}</div>
+                            <div class="student-phone">${s.whatsapp}</div>
+                        </div>
                         <span class="badge status-${s.status}">${s.status}</span>
-                        <select class="inline-select" onchange="updateStatus('${s.id}', this.value)">
-                            <option value="">Cambiar estado...</option>
-                            <option value="pendiente" ${s.status==='pendiente'?'selected':''}>Pendiente</option>
-                            <option value="contactado" ${s.status==='contactado'?'selected':''}>Contactado</option>
-                            <option value="interesado" ${s.status==='interesado'?'selected':''}>Interesado</option>
-                            <option value="asignado" ${s.status==='asignado'?'selected':''}>Asignado</option>
-                            <option value="activo" ${s.status==='activo'?'selected':''}>Activo</option>
-                            <option value="descartado" ${s.status==='descartado'?'selected':''}>Descartado</option>
-                            <option value="abandonó" ${s.status==='abandonó'?'selected':''}>Abandonó</option>
-                        </select>
-                    </td>
-                    <td>
-                        <button class="btn btn-outline" style="padding:0.4rem; font-size:0.8rem; width:100%; margin-bottom:0.5rem;" onclick="addNote('${s.id}', '${s.internal_note || ''}')">📝 Agregar Nota</button>
-                        <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.5rem;">${internalNote}</div>
-                        
+                    </div>
+                    
+                    <div class="student-tags">
+                        <span class="badge" style="background:#2a9d8f33; color:var(--primary)">${s.vocal_level || 'Sin nivel'}</span>
+                        <span class="badge" style="background:#e67e2233; color:#e67e22">${s.commitment || 'Normal'}</span>
+                    </div>
+                    
+                    <div class="student-availability">
+                        <div style="margin-bottom:4px; font-weight:600; color:var(--primary)">Disponibilidad:</div>
+                        <div style="margin-bottom:4px">📅 ${days}</div>
+                        <div>⏰ ${times}</div>
+                        ${s.goal ? `<div style="margin-top:8px; padding-top:8px; border-top:1px solid var(--glass); color:var(--text-muted)"><i>"${s.goal}"</i></div>` : ''}
+                    </div>
+                    
+                    <div style="margin-bottom:1rem">
                         ${(s.status !== 'asignado' && s.status !== 'activo') ? `
                             <select class="inline-select" style="border-color:var(--primary);" onchange="assignStudent('${s.id}', this.value)">
                                 ${sessionOptions}
                             </select>
                         ` : `
-                            <div style="font-size:0.8rem; color:var(--success); text-align:center; padding:0.4rem; background:rgba(46,204,113,0.1); border-radius:6px;">✓ Ya asignado</div>
+                            <div style="font-size:0.8rem; color:var(--success); text-align:center; padding:0.6rem; background:rgba(46,204,113,0.1); border-radius:8px; font-weight:600;">✓ Alumno Asignado</div>
                         `}
-                    </td>
-                </tr>
+                    </div>
+                    
+                    <div class="student-actions">
+                        <button class="btn-action btn-confirm" onclick="quickAction('${s.id}', '${s.whatsapp}', '${s.full_name}', 'confirm')">✅ Confirmar</button>
+                        <button class="btn-action btn-reschedule" onclick="quickAction('${s.id}', '${s.whatsapp}', '${s.full_name}', 'reschedule')">⚠️ Reagendar</button>
+                        <button class="btn-action btn-outline btn-full" onclick="addNote('${s.id}', '${s.internal_note || ''}')">📝 Nota: ${s.internal_note ? s.internal_note.substring(0,25)+'...' : 'Agregar'}</button>
+                        <button class="btn-action btn-danger btn-full" onclick="deleteStudent('${s.id}')">🗑️ Eliminar</button>
+                    </div>
+                </div>
                 `;
             }).join('');
         }
 
-        function renderSessionsTable(sessions) {
-            const body = document.getElementById('sessionsBody');
-            body.innerHTML = sessions.map(s => `
-                <tr style="opacity: ${s.is_active ? '1' : '0.5'}">
-                    <td><div style="font-weight:600">${s.day}</div></td>
-                    <td>${s.start_time} - ${s.end_time}</td>
-                    <td>${s.mode}</td>
-                    <td>
-                        <div style="font-size:0.9rem; font-weight:600; margin-bottom:4px;">${s.current_students} / ${s.max_students} ocupados</div>
-                        <div style="width:100%; height:6px; background:var(--glass); border-radius:3px;">
-                            <div style="width:${(s.current_students/s.max_students)*100}%; height:100%; background:var(--primary); border-radius:3px"></div>
+        function renderSessionsGrid(sessions) {
+            const grid = document.getElementById('calendarGrid');
+            const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+            
+            let html = '';
+            daysOfWeek.forEach(day => {
+                const daySessions = sessions.filter(s => s.day.toLowerCase() === day.toLowerCase());
+                html += `<div class="calendar-day">
+                    <div class="calendar-day-header">${day}</div>
+                    ${daySessions.length === 0 ? '<div style="font-size:0.85rem; color:var(--text-muted); text-align:center; margin-top:2rem;">Sin horarios</div>' : ''}
+                    ${daySessions.map(s => `
+                        <div class="session-card ${s.current_students >= s.max_students ? 'full' : ''}">
+                            <button class="btn-delete-session" onclick="deleteSession('${s.id}')">×</button>
+                            <div class="session-time">${s.start_time} - ${s.end_time}</div>
+                            <div class="session-mode">${s.mode}</div>
+                            <div class="session-occupancy">
+                                <span>${s.current_students} / ${s.max_students}</span>
+                                <span style="color:${s.current_students >= s.max_students ? 'var(--danger)' : 'var(--success)'}; font-size:1.2rem; line-height:1;">
+                                    ${s.current_students >= s.max_students ? '●' : '○'}
+                                </span>
+                            </div>
                         </div>
-                    </td>
-                    <td>
-                        <button class="btn btn-icon" onclick="deleteSession('${s.id}')" title="Eliminar horario">🗑️</button>
-                    </td>
-                </tr>
-            `).join('');
+                    `).join('')}
+                </div>`;
+            });
+            grid.innerHTML = html;
         }
 
-        // ================= ACCIONES DE GESTIÓN =================
-        async function updateStatus(id, status) {
-            if (!status) return;
-            await api('updateStudent', { id, updates: { status } });
-            refreshDashboard();
+        // ================= ACCIONES RÁPIDAS (OPERATIVAS) =================
+        async function quickAction(id, phone, name, actionType) {
+            let status = '';
+            let message = '';
+            
+            if (actionType === 'confirm') {
+                status = 'contactado';
+                message = `Hola ${name}, te confirmo tu clase. ¿Te parece bien el horario?`;
+            } else if (actionType === 'reschedule') {
+                status = 'contactado';
+                message = `Hola ${name}, gracias por tu propuesta. No puedo en ese horario, ¿buscamos otra opción?`;
+            }
+            
+            // Hacemos el update silencioso
+            api('updateStudent', { id, updates: { status } }); 
+            
+            // Abrimos WhatsApp inmediatamente
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+            setTimeout(refreshDashboard, 1500);
+        }
+
+        async function deleteStudent(id) {
+            if (confirm("¿Estás seguro de ELIMINAR a este alumno? Esta acción no se puede deshacer.")) {
+                await api('deleteStudent', { id });
+                refreshDashboard();
+            }
         }
 
         async function addNote(id, currentNote) {
-            const note = prompt("Nota interna (para recordatorios del profe):", currentNote);
+            const note = prompt("Nota interna:", currentNote);
             if (note !== null) {
                 await api('updateStudent', { id, updates: { internal_note: note } });
                 refreshDashboard();
@@ -508,12 +489,10 @@
             if (confirm("¿Confirmas la asignación de este alumno al horario seleccionado?")) {
                 try {
                     await api('assignStudent', { student_id, session_id });
-                    alert("¡Alumno asignado exitosamente! El cupo del horario se ha actualizado.");
+                    alert("¡Alumno asignado exitosamente!");
                     refreshDashboard();
                 } catch(e) {}
-            } else {
-                refreshDashboard(); // reset dropdown
-            }
+            } else { refreshDashboard(); }
         }
 
         async function openNewSession() {
@@ -531,7 +510,7 @@
         }
 
         async function deleteSession(id) {
-            if (confirm("¿Estás seguro de eliminar este horario? Esto no desasignará a los alumnos automáticamente.")) {
+            if (confirm("¿Eliminar este horario?")) {
                 await api('deleteSession', { id });
                 refreshDashboard();
             }
