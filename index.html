@@ -255,7 +255,7 @@
             <div id="dash-horarios" class="dash-view">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; align-items: center; flex-wrap: wrap; gap: 1rem;">
                     <h2>Calendario Semanal</h2>
-                    <button class="btn btn-primary" onclick="openNewSession()">+ Crear Horario</button>
+                    <p style="color:var(--text-muted); font-size:0.9rem;">El calendario se llena automáticamente con los alumnos "Activos".</p>
                 </div>
                 <div class="calendar-grid" id="calendarGrid"></div>
             </div>
@@ -343,6 +343,8 @@
             showSection('publicSection');
         }
 
+        let currentStudents = [];
+
         // ================= DASHBOARD RENDER =================
         async function refreshDashboard() {
             try {
@@ -352,30 +354,34 @@
                 document.getElementById('stat-contacted').innerText = s.contacted;
                 document.getElementById('stat-assigned').innerText = s.assigned;
                 document.getElementById('stat-active').innerText = s.active;
-                document.getElementById('stat-free').innerText = s.free_slots;
-
-                const sessRes = await api('getSessions');
-                currentSessions = sessRes.data;
-                renderSessionsGrid(currentSessions);
+                // Ocultamos la tarjeta de cupos libres ya que ahora es dinámico
+                document.getElementById('stat-free').parentElement.style.display = 'none';
 
                 const stuRes = await api('getStudents');
-                renderStudentsGrid(stuRes.data);
+                currentStudents = stuRes.data;
+                
+                renderStudentsGrid(currentStudents);
+                renderSessionsGrid(currentStudents);
             } catch (e) {}
         }
 
         function renderStudentsGrid(students) {
             const grid = document.getElementById('studentsGrid');
             grid.innerHTML = students.map(s => {
-                const avail = s.availability_json ? JSON.parse(s.availability_json) : {days:[], times:[]};
+                let avail = {days:[], times:[]};
+                try {
+                    if (s.availability_json && typeof s.availability_json === 'object') avail = s.availability_json;
+                    else if (s.availability_json && typeof s.availability_json === 'string') avail = JSON.parse(s.availability_json);
+                } catch(e) {}
+                
                 const days = Array.isArray(avail.days) && avail.days.length > 0 ? avail.days.join(', ') : 'No especificado';
                 const times = Array.isArray(avail.times) && avail.times.length > 0 ? avail.times.join(', ') : 'No especificado';
                 
-                let sessionOptions = `<option value="">Asignar a horario...</option>`;
-                currentSessions.forEach(sess => {
-                    if(sess.is_active && sess.current_students < sess.max_students) {
-                        sessionOptions += `<option value="${sess.id}">${sess.day} ${sess.start_time} (${sess.max_students - sess.current_students} libres)</option>`;
-                    }
-                });
+                let assignedBadge = '';
+                if (s.status === 'activo' || s.status === 'asignado') {
+                    const timeStr = avail.assigned_time || 'Horario por definir';
+                    assignedBadge = `<div style="font-size:0.85rem; color:var(--success); text-align:center; padding:0.6rem; background:rgba(46,204,113,0.1); border-radius:8px; font-weight:600; margin-bottom:1rem;">✓ Asignado: ${timeStr}</div>`;
+                }
 
                 return `
                 <div class="student-card">
@@ -399,15 +405,8 @@
                         ${s.goal ? `<div style="margin-top:8px; padding-top:8px; border-top:1px solid var(--glass); color:var(--text-muted)"><i>"${s.goal}"</i></div>` : ''}
                     </div>
                     
-                    <div style="margin-bottom:1rem">
-                        ${(s.status !== 'asignado' && s.status !== 'activo') ? `
-                            <select class="inline-select" style="border-color:var(--primary);" onchange="assignStudent('${s.id}', this.value)">
-                                ${sessionOptions}
-                            </select>
-                        ` : `
-                            <div style="font-size:0.8rem; color:var(--success); text-align:center; padding:0.6rem; background:rgba(46,204,113,0.1); border-radius:8px; font-weight:600;">✓ Alumno Asignado</div>
-                        `}
-                    </div>
+                    
+                    ${assignedBadge}
                     
                     <div class="student-actions">
                         <button class="btn-action btn-confirm" onclick="quickAction('${s.id}', '${s.whatsapp}', '${s.full_name}', 'confirm')">✅ Confirmar</button>
@@ -420,29 +419,44 @@
             }).join('');
         }
 
-        function renderSessionsGrid(sessions) {
+        function renderSessionsGrid(students) {
             const grid = document.getElementById('calendarGrid');
             const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
             
+            const activeStudents = students.filter(s => s.status === 'activo' || s.status === 'asignado');
+            
             let html = '';
             daysOfWeek.forEach(day => {
-                const daySessions = sessions.filter(s => s.day.toLowerCase() === day.toLowerCase());
+                const dayStudents = activeStudents.filter(s => {
+                    let avail = {};
+                    try {
+                        if (typeof s.availability_json === 'object') avail = s.availability_json;
+                        else if (typeof s.availability_json === 'string') avail = JSON.parse(s.availability_json);
+                    } catch(e){}
+                    const t = (avail.assigned_time || '').toLowerCase();
+                    return t.includes(day.toLowerCase());
+                });
+                
                 html += `<div class="calendar-day">
                     <div class="calendar-day-header">${day}</div>
-                    ${daySessions.length === 0 ? '<div style="font-size:0.85rem; color:var(--text-muted); text-align:center; margin-top:2rem;">Sin horarios</div>' : ''}
-                    ${daySessions.map(s => `
-                        <div class="session-card ${s.current_students >= s.max_students ? 'full' : ''}">
-                            <button class="btn-delete-session" onclick="deleteSession('${s.id}')">×</button>
-                            <div class="session-time">${s.start_time} - ${s.end_time}</div>
-                            <div class="session-mode">${s.mode}</div>
+                    ${dayStudents.length === 0 ? '<div style="font-size:0.85rem; color:var(--text-muted); text-align:center; margin-top:2rem;">Sin alumnos</div>' : ''}
+                    ${dayStudents.map(s => {
+                        let avail = {};
+                        try {
+                            if (typeof s.availability_json === 'object') avail = s.availability_json;
+                            else if (typeof s.availability_json === 'string') avail = JSON.parse(s.availability_json);
+                        } catch(e){}
+                        const timeStr = avail.assigned_time || 'Sin hora';
+                        return `
+                        <div class="session-card">
+                            <div class="session-time">${timeStr}</div>
+                            <div class="session-mode" style="color:var(--primary); font-weight:600;">${s.full_name}</div>
                             <div class="session-occupancy">
-                                <span>${s.current_students} / ${s.max_students}</span>
-                                <span style="color:${s.current_students >= s.max_students ? 'var(--danger)' : 'var(--success)'}; font-size:1.2rem; line-height:1;">
-                                    ${s.current_students >= s.max_students ? '●' : '○'}
-                                </span>
+                                <span><a href="https://wa.me/${s.whatsapp}" target="_blank" style="color:var(--success); text-decoration:none;">📱 WhatsApp</a></span>
                             </div>
                         </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>`;
             });
             grid.innerHTML = html;
@@ -452,17 +466,32 @@
         async function quickAction(id, phone, name, actionType) {
             let status = '';
             let message = '';
+            let updates = {};
             
             if (actionType === 'confirm') {
-                status = 'contactado';
-                message = `Hola ${name}, te confirmo tu clase. ¿Te parece bien el horario?`;
+                const time = prompt(`¿Qué horario vas a asignarle a ${name}? (Ej. Lunes 17:00)`);
+                if (!time) return; // Si cancela, no hace nada
+                
+                status = 'activo';
+                const student = currentStudents.find(s => s.id === id);
+                let avail = {days:[], times:[]};
+                try {
+                    if (student && typeof student.availability_json === 'object') avail = student.availability_json;
+                    else if (student && typeof student.availability_json === 'string') avail = JSON.parse(student.availability_json);
+                } catch(e) {}
+                
+                avail.assigned_time = time;
+                updates = { status: 'activo', availability_json: JSON.stringify(avail) };
+                message = `Hola ${name}, te confirmo tu clase para los ${time}. ¿Te parece bien?`;
+                
             } else if (actionType === 'reschedule') {
                 status = 'contactado';
-                message = `Hola ${name}, gracias por tu propuesta. No puedo en ese horario, ¿buscamos otra opción?`;
+                updates = { status };
+                message = `Hola ${name}, gracias por tu propuesta. No me es posible en ese horario, ¿buscamos otra opción?`;
             }
             
             // Hacemos el update silencioso
-            api('updateStudent', { id, updates: { status } }); 
+            api('updateStudent', { id, updates }); 
             
             // Abrimos WhatsApp inmediatamente
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
@@ -484,30 +513,7 @@
             }
         }
 
-        async function assignStudent(student_id, session_id) {
-            if (!session_id) return;
-            if (confirm("¿Confirmas la asignación de este alumno al horario seleccionado?")) {
-                try {
-                    await api('assignStudent', { student_id, session_id });
-                    alert("¡Alumno asignado exitosamente!");
-                    refreshDashboard();
-                } catch(e) {}
-            } else { refreshDashboard(); }
-        }
-
-        async function openNewSession() {
-            const day = prompt("Día de la semana (Ej: Lunes, Martes...)");
-            if(!day) return;
-            const start = prompt("Hora de inicio (Ej: 16:00)");
-            if(!start) return;
-            const end = prompt("Hora de fin (Ej: 18:00)");
-            if(!end) return;
-            const max = prompt("Cupo máximo de alumnos (Ej: 5)", "5");
-            if(!max) return;
-
-            await api('createSession', { day, start_time: start, end_time: end, max_students: parseInt(max) });
-            refreshDashboard();
-        }
+        // Eliminamos las funciones viejas de asignar y crear sesión porque ya no se usan
 
         async function deleteSession(id) {
             if (confirm("¿Eliminar este horario?")) {
