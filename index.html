@@ -432,9 +432,9 @@
         const modal = document.getElementById('sessionModal');
         const listDiv = document.getElementById('sessionList');
         listDiv.innerHTML = sessions.map(s => `
-            <div style="padding:1rem; margin:0.5rem 0; background: var(--bg); border-radius:8px; cursor:pointer;" onclick="selectSession('${id}', '${s.id}', '${phone}', '${name}')">
-                <strong>${s.day} ${s.start_time} - ${s.end_time}</strong><br>
-                Cupo: ${s.current_students}/${s.max_students} · Modalidad: ${s.mode}
+            <div style="padding:1rem; margin:0.5rem 0; background: var(--bg); border-radius:8px; cursor:pointer;" onclick="selectSession('${escapeHtml(id)}', '${escapeHtml(s.id)}', '${escapeHtml(phone)}', '${escapeHtml(name)}')">
+                <strong>${escapeHtml(s.day)} ${escapeHtml(s.start_time)} - ${escapeHtml(s.end_time)}</strong><br>
+                Cupo: ${escapeHtml(s.current_students)}/${escapeHtml(s.max_students)} · Modalidad: ${escapeHtml(s.mode)}
             </div>
         `).join('');
         modal.style.display = 'flex';
@@ -475,9 +475,13 @@
             if (daySessions.length === 0) html += '<div style="text-align:center; color:gray;">Sin sesiones</div>';
             daySessions.forEach(session => {
                 html += `<div class="session-card">
-                    <div class="session-time">${session.start_time} - ${session.end_time}</div>
-                    <div class="session-mode">${session.mode} · Cupo: ${session.current_students}/${session.max_students}</div>
-                    ${session.students.map(st => `<div>🎤 ${st.full_name} <a href="https://wa.me/${st.whatsapp}" target="_blank">📱</a></div>`).join('')}
+                    <div class="session-time">${escapeHtml(session.start_time)} - ${escapeHtml(session.end_time)}</div>
+                    <div class="session-mode">${escapeHtml(session.mode)} · Cupo: ${escapeHtml(session.current_students)}/${escapeHtml(session.max_students)}</div>
+                    ${session.students.map(st => {
+                        const phone = normalizeWhatsapp(st.whatsapp);
+                        const wa = phone ? `https://wa.me/${phone}` : '#';
+                        return `<div>🎤 ${escapeHtml(st.full_name)} <a href="${wa}" target="_blank" rel="noopener noreferrer">📱</a></div>`;
+                    }).join('')}
                 </div>`;
             });
             html += `</div>`;
@@ -500,7 +504,7 @@
                 ${session.students.map(st => `
                     <div style="margin-top:0.5rem;">
                         <strong>${escapeHtml(st.full_name)}</strong>
-                        <a href="https://wa.me/${encodeURIComponent(String(st.whatsapp || ''))}?text=${encodeURIComponent('Hola, soy tu maestra de Arte del Cantar. Vi tu disponibilidad y quiero confirmar tu horario para clase.')}" target="_blank"> WhatsApp</a>
+                        <a href="https://wa.me/${normalizeWhatsapp(st.whatsapp)}?text=${encodeURIComponent('Hola, soy tu maestra de Arte del Cantar. Vi tu disponibilidad y quiero confirmar tu horario para clase.')}" target="_blank" rel="noopener noreferrer"> WhatsApp</a>
                     </div>
                 `).join('')}
             </div>
