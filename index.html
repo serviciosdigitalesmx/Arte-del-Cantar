@@ -386,7 +386,12 @@
     // ================= DASHBOARD =================
     async function refreshDashboard() {
         try {
-            const stats = await api('getDashboardStats');
+            const statsPromise = api('getDashboardStats');
+            const studentsPromise = api('getStudents');
+            const schedulePromise = api('getFullSchedule');
+            const notificationsPromise = api('getNotifications', { limit: 20 });
+
+            const stats = await statsPromise;
             const metricsHtml = `
                 <div class="metric-card"><span class="metric-val">${stats.data.pending}</span><span class="metric-label">Pendientes</span></div>
                 <div class="metric-card"><span class="metric-val">${stats.data.contacted}</span><span class="metric-label">Contactados</span></div>
@@ -396,17 +401,19 @@
             `;
             document.getElementById('metrics').innerHTML = metricsHtml;
 
-            const studentsRes = await api('getStudents');
+            const studentsRes = await studentsPromise;
             currentStudents = studentsRes.data;
             renderStudentsGrid();
 
-            const scheduleRes = await api('getFullSchedule');
-            currentSchedule = scheduleRes.data;
-            renderCalendar();
-            renderAssignments();
-
-            const notificationsRes = await api('getNotifications', { limit: 20 });
-            renderNotifications(notificationsRes.data || []);
+            requestAnimationFrame(async () => {
+                try {
+                    const [scheduleRes, notificationsRes] = await Promise.all([schedulePromise, notificationsPromise]);
+                    currentSchedule = scheduleRes.data;
+                    renderCalendar();
+                    renderAssignments();
+                    renderNotifications(notificationsRes.data || []);
+                } catch (innerErr) {}
+            });
         } catch(e) {}
     }
 
