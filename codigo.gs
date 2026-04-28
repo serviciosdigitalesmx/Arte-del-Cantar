@@ -4,6 +4,16 @@
  */
 
 const SCRIPT_PROPERTIES = PropertiesService.getScriptProperties();
+const SHEETS_CONFIG = {
+  'sessions': ['id', 'day', 'start_time', 'end_time', 'mode', 'max_students', 'current_students', 'is_active', 'deleted'],
+  'student_requests': [
+    'id', 'full_name', 'whatsapp', 'age', 'vocal_level', 'commitment', 'goal',
+    'availability_json', 'classes_per_week', 'status', 'internal_note',
+    'created_at', 'updated_at', 'deleted'
+  ],
+  'class_assignments': ['id', 'student_id', 'session_id', 'assigned_at', 'deleted'],
+  'notifications': ['id', 'type', 'title', 'message', 'student_id', 'is_read', 'created_at', 'read_at', 'deleted']
+};
 
 // ==================== 1. CONFIGURACIÓN E INFRAESTRUCTURA ====================
 function setup() {
@@ -12,31 +22,7 @@ function setup() {
     if (!ss) ss = SpreadsheetApp.create('ArteDelCantar_CRM_Agenda');
     SCRIPT_PROPERTIES.setProperty('SPREADSHEET_ID', ss.getId());
 
-    const sheetsConfig = {
-      'sessions': ['id', 'day', 'start_time', 'end_time', 'mode', 'max_students', 'current_students', 'is_active', 'deleted'],
-      'student_requests': [
-        'id', 'full_name', 'whatsapp', 'age', 'vocal_level', 'commitment', 'goal',
-        'availability_json', 'classes_per_week', 'status', 'internal_note',
-        'created_at', 'updated_at', 'deleted'
-      ],
-      'class_assignments': ['id', 'student_id', 'session_id', 'assigned_at', 'deleted'],
-      'notifications': ['id', 'type', 'title', 'message', 'student_id', 'is_read', 'created_at', 'read_at', 'deleted']
-    };
-
-    for (const [sheetName, headers] of Object.entries(sheetsConfig)) {
-      let sheet = ss.getSheetByName(sheetName);
-      if (!sheet) {
-        sheet = ss.insertSheet(sheetName);
-        sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-        sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-      } else {
-        // Asegurar columnas nuevas (soft delete)
-        const existingHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-        if (!existingHeaders.includes('deleted')) {
-          sheet.getRange(1, sheet.getLastColumn() + 1).setValue('deleted');
-        }
-      }
-    }
+    ensureInfrastructure(ss);
 
     if (!SCRIPT_PROPERTIES.getProperty('JWT_SECRET')) {
       SCRIPT_PROPERTIES.setProperty('JWT_SECRET', Utilities.getUuid());
@@ -69,6 +55,7 @@ function doGet(e) { return respondJson({ ok: false, error: 'Acceso solo por POST
 
 function doPost(e) {
   try {
+    ensureInfrastructure();
     const requestData = JSON.parse(e.postData.contents);
     const { action, payload = {}, token } = requestData;
 
@@ -413,7 +400,35 @@ function respondJson(data, status = 200) {
   return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }
 
-function getSpreadsheet() { return SpreadsheetApp.openById(SCRIPT_PROPERTIES.getProperty('SPREADSHEET_ID')); }
+function getSpreadsheet() {
+  ensureInfrastructure();
+  return SpreadsheetApp.openById(SCRIPT_PROPERTIES.getProperty('SPREADSHEET_ID'));
+}
+
+function ensureInfrastructure(ss) {
+  const spreadsheet = ss || SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.openById(SCRIPT_PROPERTIES.getProperty('SPREADSHEET_ID')) || SpreadsheetApp.create('ArteDelCantar_CRM_Agenda');
+  if (!SCRIPT_PROPERTIES.getProperty('SPREADSHEET_ID')) {
+    SCRIPT_PROPERTIES.setProperty('SPREADSHEET_ID', spreadsheet.getId());
+  }
+
+  Object.entries(SHEETS_CONFIG).forEach(([sheetName, headers]) => {
+    let sheet = spreadsheet.getSheetByName(sheetName);
+    if (!sheet) {
+      sheet = spreadsheet.insertSheet(sheetName);
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+      return;
+    }
+    const existingHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    headers.forEach((header, idx) => {
+      if (existingHeaders[idx] !== header && !existingHeaders.includes(header)) {
+        sheet.getRange(1, existingHeaders.length + 1).setValue(header);
+        existingHeaders.push(header);
+      }
+    });
+  });
+  return spreadsheet;
+}
 
 function getAllRecords(sheetName) {
   const sheet = getSpreadsheet().getSheetByName(sheetName);
@@ -435,6 +450,7 @@ function getAllRecords(sheetName) {
 
 function insertRecord(sheetName, record) {
   const sheet = getSpreadsheet().getSheetByName(sheetName);
+  if (!sheet) throw new Error(`Sheet no encontrada: ${sheetName}`);
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const row = headers.map(h => {
     const val = record[h];
@@ -447,6 +463,7 @@ function insertRecord(sheetName, record) {
 
 function updateRecord(sheetName, id, updates) {
   const sheet = getSpreadsheet().getSheetByName(sheetName);
+  if (!sheet) throw new Error(`Sheet no encontrada: ${sheetName}`);
   const data = sheet.getDataRange().getValues();
   const headers = data[0];
   const idCol = headers.indexOf('id');
