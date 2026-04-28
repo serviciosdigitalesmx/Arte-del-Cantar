@@ -189,7 +189,8 @@
 <script>
     // ================= CONFIGURACIÓN =================
     // IMPORTANTE: Reemplaza esta URL con la de tu Web App desplegada
-    const API_URL = localStorage.getItem('ARTEDELCANTAR_API_URL') || 'https://script.google.com/macros/s/AKfycbyGrbJViblrhKIZ8Yjfbq0b1CkHzq24d_QLfWsKoFnD6YOO-5RnF-HKkjRxioFGtoDxjw/exec';
+    const APP_VERSION = '2026-04-28.2';
+    const API_URL = (localStorage.getItem('ARTEDELCANTAR_API_URL') || 'https://script.google.com/macros/s/AKfycbyGrbJViblrhKIZ8Yjfbq0b1CkHzq24d_QLfWsKoFnD6YOO-5RnF-HKkjRxioFGtoDxjw/exec') + `?v=${APP_VERSION}`;
     let currentLang = localStorage.getItem('adcl_lang') || 'es';
     const DASHBOARD_CACHE_KEY = 'adcl_dashboard_cache_v1';
     const DASHBOARD_CACHE_TTL_MS = 3 * 60 * 1000;
