@@ -359,6 +359,49 @@
         return data;
     }
 
+    let auditQueue = [];
+    let auditFlushTimer = null;
+    function queueAudit(event_name, target = '', details = {}) {
+        auditQueue.push({
+            event_name,
+            target,
+            route: window.location.href,
+            details
+        });
+        if (auditQueue.length > 20) auditQueue = auditQueue.slice(-20);
+        if (auditFlushTimer) return;
+        auditFlushTimer = setTimeout(async () => {
+            const batch = auditQueue.splice(0, auditQueue.length);
+            auditFlushTimer = null;
+            if (!batch.length) return;
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'trackInteraction',
+                        payload: batch.length === 1 ? batch[0] : { event_name: 'batch_click', target: 'ui', route: window.location.href, details: { events: batch } }
+                    })
+                });
+            } catch (e) {}
+        }, 700);
+    }
+
+    document.addEventListener('click', (event) => {
+        const target = event.target.closest('button, a, input[type="submit"], input[type="button"], [role="button"]');
+        if (!target) return;
+        const label = (target.innerText || target.value || target.getAttribute('aria-label') || target.id || target.className || 'click').trim().slice(0, 120);
+        queueAudit('click', label, {
+            id: target.id || '',
+            className: target.className || '',
+            tagName: target.tagName || ''
+        });
+    }, true);
+
+    document.addEventListener('submit', (event) => {
+        const form = event.target;
+        queueAudit('submit', form?.id || form?.getAttribute('name') || 'form', {});
+    }, true);
+
     // ================= PÚBLICO =================
     function submitStudentForm(e) {
         e.preventDefault();

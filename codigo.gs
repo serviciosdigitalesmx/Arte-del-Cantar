@@ -12,7 +12,8 @@ const SHEETS_CONFIG = {
     'created_at', 'updated_at', 'deleted'
   ],
   'class_assignments': ['id', 'student_id', 'session_id', 'assigned_at', 'deleted'],
-  'notifications': ['id', 'type', 'title', 'message', 'student_id', 'is_read', 'created_at', 'read_at', 'deleted']
+  'notifications': ['id', 'type', 'title', 'message', 'student_id', 'is_read', 'created_at', 'read_at', 'deleted'],
+  'audit_log': ['id', 'event_type', 'action', 'entity_type', 'entity_id', 'payload_json', 'user_agent', 'created_at', 'deleted']
 };
 
 // ==================== 1. CONFIGURACIÓN E INFRAESTRUCTURA ====================
@@ -57,16 +58,18 @@ function doPost(e) {
   try {
     ensureInfrastructure();
     const requestData = JSON.parse(e.postData.contents);
-    const { action, payload = {}, token } = requestData;
+    const { action, payload = {}, token, event_type = 'api' } = requestData;
+    const userAgent = (e && e.parameter && e.parameter.ua) ? String(e.parameter.ua) : '';
 
     // Acciones públicas (sin token)
     if (action === 'setup') return setup();
-    if (action === 'createStudentRequest') return handleCreateStudentRequest(payload);
-    if (action === 'login') return handleLogin(payload);
-    if (action === 'setAdminPassword') return handleSetAdminPassword(payload);
-    if (action === 'setTeacherContact') return handleSetTeacherContact(payload);
+    if (action === 'createStudentRequest') return handleCreateStudentRequest(payload, { event_type, userAgent });
+    if (action === 'login') return handleLogin(payload, { event_type, userAgent });
+    if (action === 'setAdminPassword') return handleSetAdminPassword(payload, { event_type, userAgent });
+    if (action === 'setTeacherContact') return handleSetTeacherContact(payload, { event_type, userAgent });
     if (action === 'getNotifications') return handleGetNotifications(payload);
-    if (action === 'markNotificationRead') return handleMarkNotificationRead(payload);
+    if (action === 'markNotificationRead') return handleMarkNotificationRead(payload, { event_type, userAgent });
+    if (action === 'trackInteraction') return handleTrackInteraction(payload, { event_type, userAgent });
     if (action === 'getPublicSessions') {
       const sessions = getAllRecords('sessions').filter(s => s.is_active === true && s.deleted !== true);
       return respondJson({ ok: true, data: sessions });
@@ -74,20 +77,21 @@ function doPost(e) {
 
     // Acciones protegidas (requieren token válido)
     const decoded = verifyAuth(token);
+    const auditContext = { event_type, userAgent, actor: decoded.role || 'admin' };
 
     switch (action) {
-      case 'getDashboardStats': return handleGetDashboardStats();
+      case 'getDashboardStats': return handleGetDashboardStats(auditContext);
       case 'getStudents': return respondJson({ ok: true, data: getAllRecords('student_requests') });
       case 'getSessions': return respondJson({ ok: true, data: getAllRecords('sessions') });
-      case 'getAvailableSessions': return handleGetAvailableSessions();
-      case 'getFullSchedule': return handleGetFullSchedule();
-      case 'updateStudent': return handleUpdateStudent(payload);
-      case 'deleteStudent': return handleDeleteStudent(payload);
-      case 'bulkImport': return handleBulkImport(payload);
-      case 'createSession': return handleCreateSession(payload);
-      case 'deleteSession': return handleDeleteSession(payload);
-      case 'assignStudent': return handleAssignStudent(payload);
-      case 'unassignStudent': return handleUnassignStudent(payload);
+      case 'getAvailableSessions': return handleGetAvailableSessions(auditContext);
+      case 'getFullSchedule': return handleGetFullSchedule(auditContext);
+      case 'updateStudent': return handleUpdateStudent(payload, auditContext);
+      case 'deleteStudent': return handleDeleteStudent(payload, auditContext);
+      case 'bulkImport': return handleBulkImport(payload, auditContext);
+      case 'createSession': return handleCreateSession(payload, auditContext);
+      case 'deleteSession': return handleDeleteSession(payload, auditContext);
+      case 'assignStudent': return handleAssignStudent(payload, auditContext);
+      case 'unassignStudent': return handleUnassignStudent(payload, auditContext);
       default: throw new Error('Acción no reconocida');
     }
   } catch (e) {
@@ -98,7 +102,7 @@ function doPost(e) {
 
 // ==================== 3. LÓGICA DE NEGOCIO (PÚBLICA Y PRIVADA) ====================
 
-function handleCreateStudentRequest(data) {
+function handleCreateStudentRequest(data, context = {}) {
   const cleanPhone = data.whatsapp ? data.whatsapp.replace(/\D/g, '') : '';
   const existing = getAllRecords('student_requests').find(s => s.whatsapp === cleanPhone && s.deleted !== true);
 
@@ -114,6 +118,7 @@ function handleCreateStudentRequest(data) {
     if (data.goal) updates.goal = data.goal;
     if (data.classes_per_week) updates.classes_per_week = data.classes_per_week;
     updateRecord('student_requests', existing.id, updates);
+    logAudit('student_request_updated', 'createStudentRequest', 'student_request', existing.id, data, context);
     return respondJson({ ok: true, message: 'Disponibilidad actualizada exitosamente' });
   } else {
     const id = Utilities.getUuid();
@@ -134,6 +139,7 @@ function handleCreateStudentRequest(data) {
       deleted: false
     };
     insertRecord('student_requests', record);
+    logAudit('student_request_created', 'createStudentRequest', 'student_request', id, data, context);
     const teacherWhatsappUrl = createNotificationAndMaybeAlertTeacher({
       type: 'new_student_request',
       title: 'Nueva solicitud de alumno',
@@ -144,7 +150,7 @@ function handleCreateStudentRequest(data) {
   }
 }
 
-function handleGetDashboardStats() {
+function handleGetDashboardStats(context = {}) {
   const students = getAllRecords('student_requests');
   const sessions = getAllRecords('sessions');
 
@@ -156,16 +162,18 @@ function handleGetDashboardStats() {
     active: students.filter(s => s.status === 'activo').length,
     free_slots: sessions.reduce((acc, s) => acc + (s.max_students - s.current_students), 0)
   };
+  logAudit('dashboard_viewed', 'getDashboardStats', 'dashboard', '', { stats }, context);
   return respondJson({ ok: true, data: stats });
 }
 
-function handleGetAvailableSessions() {
+function handleGetAvailableSessions(context = {}) {
   const sessions = getAllRecords('sessions').filter(s => s.is_active === true && s.deleted !== true);
   const available = sessions.filter(s => s.current_students < s.max_students);
+  logAudit('available_sessions_viewed', 'getAvailableSessions', 'sessions', '', { count: available.length }, context);
   return respondJson({ ok: true, data: available });
 }
 
-function handleGetFullSchedule() {
+function handleGetFullSchedule(context = {}) {
   const sessions = getAllRecords('sessions').filter(s => s.is_active === true && s.deleted !== true);
   const assignments = getAllRecords('class_assignments').filter(a => a.deleted !== true);
   const students = getAllRecords('student_requests');
@@ -180,10 +188,11 @@ function handleGetFullSchedule() {
       students: assignedStudents
     };
   });
+  logAudit('full_schedule_viewed', 'getFullSchedule', 'schedule', '', { sessions: schedule.length }, context);
   return respondJson({ ok: true, data: schedule });
 }
 
-function handleAssignStudent({ student_id, session_id }) {
+function handleAssignStudent({ student_id, session_id }, context = {}) {
   const session = getRecordById('sessions', session_id);
   if (!session || session.deleted) throw new Error('Sesión no encontrada');
   if (session.current_students >= session.max_students) throw new Error('Sesión llena');
@@ -204,11 +213,12 @@ function handleAssignStudent({ student_id, session_id }) {
   updateRecord('sessions', session_id, { current_students: session.current_students + 1 });
   // Cambiar estado del alumno a 'activo'
   updateRecord('student_requests', student_id, { status: 'activo', updated_at: new Date().toISOString() });
+  logAudit('student_assigned', 'assignStudent', 'class_assignment', id, { student_id, session_id }, context);
 
   return respondJson({ ok: true, message: 'Alumno asignado correctamente' });
 }
 
-function handleUnassignStudent({ student_id, session_id }) {
+function handleUnassignStudent({ student_id, session_id }, context = {}) {
   const assignment = getAllRecords('class_assignments').find(a => a.student_id === student_id && a.session_id === session_id && a.deleted !== true);
   if (!assignment) throw new Error('Asignación no encontrada');
 
@@ -222,6 +232,7 @@ function handleUnassignStudent({ student_id, session_id }) {
   }
   // Cambiar estado del alumno a 'pendiente' o el que corresponda
   updateRecord('student_requests', student_id, { status: 'pendiente', updated_at: new Date().toISOString() });
+  logAudit('student_unassigned', 'unassignStudent', 'class_assignment', assignment.id, { student_id, session_id }, context);
 
   return respondJson({ ok: true, message: 'Alumno desasignado correctamente' });
 }
@@ -229,24 +240,26 @@ function handleUnassignStudent({ student_id, session_id }) {
 // Resto de funciones: handleUpdateStudent, handleDeleteStudent (soft delete), handleCreateSession, handleDeleteSession, bulkImport
 // Las mantengo similares pero con soft delete.
 
-function handleUpdateStudent({ id, updates }) {
+function handleUpdateStudent({ id, updates }, context = {}) {
   updates.updated_at = new Date().toISOString();
   updateRecord('student_requests', id, updates);
+  logAudit('student_updated', 'updateStudent', 'student_request', id, { updates }, context);
   return respondJson({ ok: true });
 }
 
-function handleDeleteStudent({ id }) {
+function handleDeleteStudent({ id }, context = {}) {
   // Soft delete
   updateRecord('student_requests', id, { deleted: true });
   // Opcional: también desasignar de todas las sesiones
   const assignments = getAllRecords('class_assignments').filter(a => a.student_id === id && a.deleted !== true);
   assignments.forEach(a => {
-    handleUnassignStudent({ student_id: id, session_id: a.session_id });
+    handleUnassignStudent({ student_id: id, session_id: a.session_id }, context);
   });
+  logAudit('student_deleted', 'deleteStudent', 'student_request', id, {}, context);
   return respondJson({ ok: true, message: 'Alumno eliminado (soft delete)' });
 }
 
-function handleCreateSession(data) {
+function handleCreateSession(data, context = {}) {
   const record = {
     id: Utilities.getUuid(),
     day: data.day,
@@ -259,16 +272,18 @@ function handleCreateSession(data) {
     deleted: false
   };
   insertRecord('sessions', record);
+  logAudit('session_created', 'createSession', 'session', record.id, data, context);
   return respondJson({ ok: true, data: record });
 }
 
-function handleDeleteSession({ id }) {
+function handleDeleteSession({ id }, context = {}) {
   // Soft delete
   updateRecord('sessions', id, { deleted: true });
+  logAudit('session_deleted', 'deleteSession', 'session', id, {}, context);
   return respondJson({ ok: true });
 }
 
-function handleBulkImport({ numbers }) {
+function handleBulkImport({ numbers }, context = {}) {
   const existing = getAllRecords('student_requests').map(s => s.whatsapp);
   let imported = 0;
   numbers.forEach(num => {
@@ -289,11 +304,12 @@ function handleBulkImport({ numbers }) {
       imported++;
     }
   });
+  logAudit('bulk_import_completed', 'bulkImport', 'student_request', '', { imported, numbers: Array.isArray(numbers) ? numbers.length : 0 }, context);
   return respondJson({ ok: true, data: { imported } });
 }
 
 // ==================== 4. AUTENTICACIÓN (HMAC) ====================
-function handleLogin({ password }) {
+function handleLogin({ password }, context = {}) {
   const correctPass = SCRIPT_PROPERTIES.getProperty('ADMIN_PASS');
   if (!correctPass) throw new Error('Sistema no configurado: falta ADMIN_PASS');
   if (password !== correctPass) throw new Error('Contraseña incorrecta');
@@ -306,25 +322,28 @@ function handleLogin({ password }) {
   const secret = SCRIPT_PROPERTIES.getProperty('JWT_SECRET');
   const signature = Utilities.computeHmacSignature(Utilities.MacAlgorithm.HMAC_SHA_256, payloadStr, secret);
   const token = Utilities.base64Encode(payloadStr) + '.' + Utilities.base64Encode(signature);
+  logAudit('login_success', 'login', 'auth', '', {}, context);
   return respondJson({ ok: true, data: { token } });
 }
 
-function handleSetAdminPassword({ currentPassword, newPassword }) {
+function handleSetAdminPassword({ currentPassword, newPassword }, context = {}) {
   const correctPass = SCRIPT_PROPERTIES.getProperty('ADMIN_PASS');
   if (!correctPass) throw new Error('Sistema no configurado: falta ADMIN_PASS');
   if (currentPassword !== correctPass) throw new Error('Contraseña actual incorrecta');
   if (!newPassword || String(newPassword).length < 8) throw new Error('La nueva contraseña debe tener al menos 8 caracteres');
   SCRIPT_PROPERTIES.setProperty('ADMIN_PASS', String(newPassword));
+  logAudit('password_changed', 'setAdminPassword', 'auth', '', {}, context);
   return respondJson({ ok: true, message: 'Contraseña actualizada' });
 }
 
-function handleSetTeacherContact({ currentPassword, teacherEmail = '', teacherWhatsapp = '' }) {
+function handleSetTeacherContact({ currentPassword, teacherEmail = '', teacherWhatsapp = '' }, context = {}) {
   const correctPass = SCRIPT_PROPERTIES.getProperty('ADMIN_PASS');
   if (!correctPass) throw new Error('Sistema no configurado: falta ADMIN_PASS');
   if (currentPassword !== correctPass) throw new Error('Contraseña actual incorrecta');
 
   if (teacherEmail) SCRIPT_PROPERTIES.setProperty('TEACHER_EMAIL', String(teacherEmail).trim());
   if (teacherWhatsapp) SCRIPT_PROPERTIES.setProperty('TEACHER_WHATSAPP', String(teacherWhatsapp).trim());
+  logAudit('teacher_contact_updated', 'setTeacherContact', 'settings', '', { teacherEmail, teacherWhatsapp }, context);
 
   return respondJson({ ok: true, message: 'Datos de contacto actualizados' });
 }
@@ -346,9 +365,21 @@ function handleGetNotifications(payload) {
   return respondJson({ ok: true, data: items });
 }
 
-function handleMarkNotificationRead({ id }) {
+function handleMarkNotificationRead({ id }, context = {}) {
   if (!id) throw new Error('Notification id requerido');
   updateRecord('notifications', id, { is_read: true, read_at: new Date().toISOString() });
+  logAudit('notification_read', 'markNotificationRead', 'notification', id, {}, context);
+  return respondJson({ ok: true });
+}
+
+function handleTrackInteraction({ event_name = '', target = '', route = '', details = {} }, context = {}) {
+  const payload = {
+    event_name: String(event_name || ''),
+    target: String(target || ''),
+    route: String(route || ''),
+    details: details || {}
+  };
+  logAudit('ui_interaction', String(event_name || 'trackInteraction'), 'ui', String(target || ''), payload, context);
   return respondJson({ ok: true });
 }
 
@@ -379,6 +410,24 @@ function createNotificationAndMaybeAlertTeacher({ type, title, message, student_
   const teacherWhatsapp = SCRIPT_PROPERTIES.getProperty('TEACHER_WHATSAPP') || '';
   const normalized = teacherWhatsapp.replace(/\D/g, '');
   return normalized ? `https://wa.me/${normalized}?text=${encodeURIComponent(message)}` : '';
+}
+
+function logAudit(eventType, action, entityType, entityId, payload, context = {}) {
+  try {
+    insertRecord('audit_log', {
+      id: Utilities.getUuid(),
+      event_type: String(eventType || 'api'),
+      action: String(action || ''),
+      entity_type: String(entityType || ''),
+      entity_id: String(entityId || ''),
+      payload_json: payload || {},
+      user_agent: String(context.userAgent || ''),
+      created_at: new Date().toISOString(),
+      deleted: false
+    });
+  } catch (e) {
+    console.error('audit_log failed', e);
+  }
 }
 
 function verifyAuth(token) {
