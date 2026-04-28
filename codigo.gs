@@ -37,15 +37,26 @@ function setup() {
       }
     }
 
-    // No hardcodeamos contraseña; el admin debe establecerla manualmente desde el editor
-    if (!SCRIPT_PROPERTIES.getProperty('ADMIN_PASS')) {
-      throw new Error('Debes establecer ADMIN_PASS en PropertiesService (script properties) antes de usar el sistema.');
-    }
     if (!SCRIPT_PROPERTIES.getProperty('JWT_SECRET')) {
       SCRIPT_PROPERTIES.setProperty('JWT_SECRET', Utilities.getUuid());
     }
 
-    return respondJson({ ok: true, message: 'Sistema Operativo inicializado correctamente' });
+    let adminPass = SCRIPT_PROPERTIES.getProperty('ADMIN_PASS');
+    let createdAdminPass = false;
+    if (!adminPass) {
+      adminPass = Utilities.getUuid().replace(/-/g, '').slice(0, 16);
+      SCRIPT_PROPERTIES.setProperty('ADMIN_PASS', adminPass);
+      createdAdminPass = true;
+    }
+
+    return respondJson({
+      ok: true,
+      message: 'Sistema Operativo inicializado correctamente',
+      data: {
+        createdAdminPass,
+        adminPass: createdAdminPass ? adminPass : undefined
+      }
+    });
   } catch (e) {
     return respondJson({ ok: false, error: e.message }, 500);
   }
@@ -78,6 +89,7 @@ function doPost(e) {
       case 'getSessions': return respondJson({ ok: true, data: getAllRecords('sessions') });
       case 'getAvailableSessions': return handleGetAvailableSessions();
       case 'getFullSchedule': return handleGetFullSchedule();
+      case 'setAdminPassword': return handleSetAdminPassword(payload);
       case 'updateStudent': return handleUpdateStudent(payload);
       case 'deleteStudent': return handleDeleteStudent(payload);
       case 'bulkImport': return handleBulkImport(payload);
@@ -298,6 +310,15 @@ function handleLogin({ password }) {
   const signature = Utilities.computeHmacSignature(Utilities.MacAlgorithm.HMAC_SHA_256, payloadStr, secret);
   const token = Utilities.base64Encode(payloadStr) + '.' + Utilities.base64Encode(signature);
   return respondJson({ ok: true, data: { token } });
+}
+
+function handleSetAdminPassword({ currentPassword, newPassword }) {
+  const correctPass = SCRIPT_PROPERTIES.getProperty('ADMIN_PASS');
+  if (!correctPass) throw new Error('Sistema no configurado: falta ADMIN_PASS');
+  if (currentPassword !== correctPass) throw new Error('Contraseña actual incorrecta');
+  if (!newPassword || String(newPassword).length < 8) throw new Error('La nueva contraseña debe tener al menos 8 caracteres');
+  SCRIPT_PROPERTIES.setProperty('ADMIN_PASS', String(newPassword));
+  return respondJson({ ok: true, message: 'Contraseña actualizada' });
 }
 
 function verifyAuth(token) {

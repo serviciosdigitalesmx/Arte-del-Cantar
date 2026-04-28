@@ -114,6 +114,14 @@
                 <button type="submit" class="btn btn-primary">Entrar</button>
                 <button type="button" class="btn-outline" style="margin-top:1rem; width:100%;" onclick="volverPublico()">Volver</button>
             </form>
+            <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--glass);">
+                <h3 style="margin-bottom:1rem; font-size:0.95rem;">Cambiar contraseña</h3>
+                <form onsubmit="changePassword(event)">
+                    <div class="form-group"><label>Contraseña actual</label><input type="password" id="currentPass" required></div>
+                    <div class="form-group"><label>Nueva contraseña</label><input type="password" id="newPass" required minlength="8"></div>
+                    <button type="submit" class="btn btn-outline" style="width:100%;">Actualizar contraseña</button>
+                </form>
+            </div>
         </div>
     </section>
 
@@ -141,7 +149,7 @@
 <script>
     // ================= CONFIGURACIÓN =================
     // IMPORTANTE: Reemplaza esta URL con la de tu Web App desplegada
-    const API_URL = '{{SCRIPT_URL}}'; // Debes reemplazar {{SCRIPT_URL}} por la URL real o usar window.location.origin + '/exec' si es una Web App
+    const API_URL = localStorage.getItem('ARTEDELCANTAR_API_URL') || 'https://script.google.com/macros/s/AKfycbyGrbJViblrhKIZ8Yjfbq0b1CkHzq24d_QLfWsKoFnD6YOO-5RnF-HKkjRxioFGtoDxjw/exec';
 
     // Variables globales
     let currentStudents = [];
@@ -211,6 +219,17 @@
             refreshDashboard();
         } catch (err) { alert('Contraseña incorrecta'); }
     }
+    async function changePassword(e) {
+        e.preventDefault();
+        const currentPassword = document.getElementById('currentPass').value;
+        const newPassword = document.getElementById('newPass').value;
+        try {
+            const res = await api('setAdminPassword', { currentPassword, newPassword });
+            alert(res.message || 'Contraseña actualizada');
+            document.getElementById('currentPass').value = '';
+            document.getElementById('newPass').value = '';
+        } catch (err) {}
+    }
     function logoutAdmin() { sessionStorage.removeItem('admin_token'); showSection('publicSection'); }
     function volverPublico() { showSection('publicSection'); }
     function handleLogoDoubleClick() {
@@ -245,6 +264,15 @@
         } catch(e) {}
     }
 
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     function renderStudentsGrid() {
         const grid = document.getElementById('studentsGrid');
         grid.innerHTML = currentStudents.map(s => {
@@ -254,14 +282,14 @@
             const times = avail.times?.join(', ') || 'No especificado';
             return `
             <div class="student-card">
-                <div><strong>${s.full_name}</strong> <span class="badge status-${s.status}">${s.status}</span></div>
-                <div class="student-phone">${s.whatsapp}</div>
-                <div class="student-tags"><span class="badge">${s.vocal_level || 'N/A'}</span> <span class="badge">${s.commitment || ''}</span></div>
-                <div class="student-availability">📅 ${days}<br>⏰ ${times}<br><i>${s.goal || ''}</i></div>
+                <div><strong>${escapeHtml(s.full_name)}</strong> <span class="badge status-${escapeHtml(s.status)}">${escapeHtml(s.status)}</span></div>
+                <div class="student-phone">${escapeHtml(s.whatsapp)}</div>
+                <div class="student-tags"><span class="badge">${escapeHtml(s.vocal_level || 'N/A')}</span> <span class="badge">${escapeHtml(s.commitment || '')}</span></div>
+                <div class="student-availability">📅 ${escapeHtml(days)}<br>⏰ ${escapeHtml(times)}<br><i>${escapeHtml(s.goal || '')}</i></div>
                 <div class="student-actions">
-                    <button class="btn-action btn-confirm" onclick="confirmStudent('${s.id}', '${s.whatsapp}', '${s.full_name}')">✅ Confirmar</button>
-                    <button class="btn-action btn-danger" onclick="deleteStudent('${s.id}')">🗑️ Eliminar</button>
-                    <button class="btn-action btn-outline" onclick="addNote('${s.id}', '${s.internal_note || ''}')">📝 Nota</button>
+                    <button class="btn-action btn-confirm" onclick="confirmStudent('${escapeHtml(s.id)}', '${escapeHtml(s.whatsapp)}', '${escapeHtml(s.full_name)}')">✅ Confirmar</button>
+                    <button class="btn-action btn-danger" onclick="deleteStudent('${escapeHtml(s.id)}')">🗑️ Eliminar</button>
+                    <button class="btn-action btn-outline" onclick="addNote('${escapeHtml(s.id)}', '${escapeHtml(s.internal_note || '')}')">📝 Nota</button>
                 </div>
             </div>`;
         }).join('');
