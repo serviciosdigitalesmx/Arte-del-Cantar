@@ -347,6 +347,17 @@
         }
     }
 
+    async function apiQuiet(action, payload = {}) {
+        const token = sessionStorage.getItem('admin_token');
+        const res = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action, payload, token })
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        return data;
+    }
+
     // ================= PÚBLICO =================
     function submitStudentForm(e) {
         e.preventDefault();
@@ -584,7 +595,7 @@
             const days = avail.days?.join(', ') || 'No especificado';
             const times = avail.times?.join(', ') || 'No especificado';
             return `
-            <div class="student-card">
+            <div class="student-card" id="student-card-${escapeHtml(s.id)}">
                 <div><strong>${escapeHtml(s.full_name)}</strong> <span class="badge status-${escapeHtml(s.status)}">${escapeHtml(s.status)}</span></div>
                 <div class="student-phone">${escapeHtml(s.whatsapp)}</div>
                 <div class="student-tags"><span class="badge">${escapeHtml(s.vocal_level || 'N/A')}</span> <span class="badge">${escapeHtml(s.commitment || '')}</span></div>
@@ -612,7 +623,8 @@
 
     function removeStudentFromView(id) {
         currentStudents = currentStudents.filter(s => s.id !== id);
-        renderStudentsGrid();
+        const card = document.getElementById(`student-card-${id}`);
+        if (card) card.remove();
     }
 
     async function confirmStudent(id, phone, name) {
@@ -666,7 +678,7 @@
     async function deleteStudent(id) {
         if (confirm('¿Eliminar este alumno? (Se conservará oculto)')) {
             removeStudentFromView(id);
-            api('deleteStudent', { id })
+            apiQuiet('deleteStudent', { id })
                 .then(() => refreshDashboard())
                 .catch(() => refreshDashboard());
         }
