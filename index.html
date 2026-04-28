@@ -52,6 +52,12 @@
         .badge { padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; }
         .students-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
         .student-card { background: var(--card-bg); border: 1px solid var(--glass); border-radius: 16px; padding: 1.5rem; }
+        .student-actions { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem; }
+        .student-action-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .whatsapp-toggle { background: rgba(37, 211, 102, 0.15); color: #25D366; }
+        .whatsapp-menu { display: none; flex-direction: column; gap: 0.45rem; }
+        .whatsapp-menu.open { display: flex; }
+        .whatsapp-menu .btn-action { width: 100%; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(200px, 1fr)); gap: 1rem; overflow-x: auto; }
         .calendar-day { background: var(--card-bg); border-radius: 12px; padding: 1rem; min-height: 300px; }
         .session-card { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; border-left: 3px solid var(--primary); }
@@ -80,7 +86,7 @@
     <section id="publicSection" class="section active">
         <div class="hero">
             <h1>Agenda tu clase de canto</h1>
-            <p>Déjanos tu disponibilidad y el maestro te contactará.</p>
+            <p>Déjanos tu disponibilidad y la maestra te contactará para confirmar tu horario.</p>
         </div>
         <div class="card">
             <form id="studentForm" onsubmit="submitStudentForm(event)">
@@ -129,11 +135,13 @@
     <section id="dashboardSection" class="section">
         <div class="metrics-grid" id="metrics"></div>
         <div class="nav-tabs">
-            <button class="nav-btn active" onclick="switchDashTab('dash-solicitudes')">CRM</button>
-            <button class="nav-btn" onclick="switchDashTab('dash-horarios')">Calendario</button>
+            <button class="nav-btn active" onclick="switchDashTab('dash-solicitudes')">Solicitudes</button>
+            <button class="nav-btn" onclick="switchDashTab('dash-horarios')">Horarios</button>
+            <button class="nav-btn" onclick="switchDashTab('dash-asignaciones')">Asignaciones</button>
         </div>
         <div id="dash-solicitudes" class="dash-view active"><div class="students-grid" id="studentsGrid"></div></div>
         <div id="dash-horarios" class="dash-view"><div class="calendar-grid" id="calendarGrid"></div></div>
+        <div id="dash-asignaciones" class="dash-view"><div class="calendar-grid" id="assignmentsGrid"></div></div>
     </section>
 </main>
 
@@ -261,6 +269,7 @@
             const scheduleRes = await api('getFullSchedule');
             currentSchedule = scheduleRes.data;
             renderCalendar();
+            renderAssignments();
         } catch(e) {}
     }
 
@@ -271,6 +280,110 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
+    }
+
+    function normalizeWhatsapp(raw) {
+        const digits = String(raw || '').replace(/\D/g, '');
+        if (digits.length === 10) return `52${digits}`;
+        if (digits.length === 12 && digits.startsWith('52')) return digits;
+        if (digits.length === 13 && digits.startsWith('521')) return `52${digits.slice(3)}`;
+        return digits;
+    }
+
+    function buildWhatsappUrl(phone, message) {
+        const normalized = normalizeWhatsapp(phone);
+        if (!normalized || normalized.length < 12) return null;
+        return `https://wa.me/${normalized}?text=${encodeURIComponent(message)}`;
+    }
+
+    function toggleWhatsappMenu(studentId) {
+        const menu = document.getElementById(`whatsapp-menu-${studentId}`);
+        if (menu) menu.classList.toggle('open');
+    }
+
+    function getStudentById(studentId) {
+        return currentStudents.find(s => s.id === studentId) || null;
+    }
+
+    function getAvailability(student) {
+        if (!student) return { days: [], times: [], assigned_time: '' };
+        try {
+            if (typeof student.availability_json === 'string') return JSON.parse(student.availability_json) || {};
+            return student.availability_json || {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function pickFromArray(items, fallback) {
+        return Array.isArray(items) && items.length > 0 ? items[0] : fallback;
+    }
+
+    function buildWhatsappMessage(type, name, student, avail) {
+        const day = pickFromArray(avail.days, 'No especificado');
+        const time = avail.assigned_time || pickFromArray(avail.times, 'No especificado');
+        const modality = student?.mode || student?.session_mode || 'clase de canto';
+        const options = Array.isArray(avail.times) && avail.times.length > 0
+            ? avail.times.slice(0, 3)
+            : ['Opción 1', 'Opción 2', 'Opción 3'];
+
+        switch (type) {
+            case 'confirm_schedule':
+                return `Hola ${name}, soy tu maestra de Arte del Cantar.\n\nVi tu registro y tengo disponible este horario para tu clase de canto:\n\n📅 Día: ${day}\n🕒 Hora: ${time}\n🎵 Modalidad: ${modality}\n\n¿Me confirmas si te queda bien?`;
+            case 'send_options':
+                return `Hola ${name}, soy tu maestra de Arte del Cantar.\n\nVi tu disponibilidad y te puedo ofrecer estas opciones:\n\n1) ${options[0]}\n2) ${options[1] || 'Opción 2'}\n3) ${options[2] || 'Opción 3'}\n\n¿Cuál te queda mejor?`;
+            case 'request_more':
+                return `Hola ${name}, soy tu maestra de Arte del Cantar.\n\nGracias por registrarte. Vi tu disponibilidad, pero necesito que me compartas un poco más de opciones para poder acomodarte mejor.\n\n¿Me podrías decir qué otros días u horarios tienes disponibles?`;
+            case 'first_class':
+                return `Hola ${name}, perfecto.\n\nTe confirmo tu primera clase de canto:\n\n📅 Día: ${day}\n🕒 Hora: ${time}\n🎵 Modalidad: ${modality}\n\nPor favor llega unos minutos antes o conéctate puntual.\n\nNos vemos en clase.`;
+            case 'reminder':
+                return `Hola ${name}, te recuerdo tu clase de canto de hoy:\n\n🕒 Hora: ${time}\n🎵 Modalidad: ${modality}\n\nNos vemos pronto.`;
+            case 'reschedule':
+                return `Hola ${name}, necesito mover tu clase de canto.\n\n¿Me puedes confirmar qué horario te queda mejor para reagendar?\n\nOpciones disponibles:\n1) ${options[0]}\n2) ${options[1] || 'Opción 2'}\n3) ${options[2] || 'Opción 3'}`;
+            case 'follow_up':
+                return `Hola ${name}, solo paso a dar seguimiento a tu registro para clases de canto.\n\n¿Sigues interesado/a en tomar clase?`;
+            case 'gentle_reject':
+                return `Hola ${name}, gracias por tu interés en las clases de canto.\n\nPor ahora no pude confirmar tu horario, pero si más adelante se abre un espacio, con gusto te aviso.`;
+            default:
+                return '';
+        }
+    }
+
+    async function whatsappAction(studentId, rawPhone, name, type) {
+        const student = getStudentById(studentId);
+        if (!student) return alert('Alumno no encontrado');
+
+        const avail = getAvailability(student);
+        const message = buildWhatsappMessage(type, name, student, avail);
+        const url = buildWhatsappUrl(rawPhone, message);
+
+        if (!url) {
+            alert('El número de WhatsApp no tiene un formato válido.');
+            return;
+        }
+
+        const statusMap = {
+            confirm_schedule: 'contactado',
+            send_options: 'contactado',
+            request_more: 'contactado',
+            first_class: 'asignado',
+            reminder: 'activo',
+            reschedule: 'contactado',
+            follow_up: 'contactado',
+            gentle_reject: 'descartado'
+        };
+
+        try {
+            await api('updateStudent', {
+                id: studentId,
+                updates: {
+                    status: statusMap[type] || student.status,
+                    updated_at: new Date().toISOString()
+                }
+            });
+            window.open(url, '_blank', 'noopener,noreferrer');
+            refreshDashboard();
+        } catch (e) {}
     }
 
     function renderStudentsGrid() {
@@ -287,9 +400,21 @@
                 <div class="student-tags"><span class="badge">${escapeHtml(s.vocal_level || 'N/A')}</span> <span class="badge">${escapeHtml(s.commitment || '')}</span></div>
                 <div class="student-availability">📅 ${escapeHtml(days)}<br>⏰ ${escapeHtml(times)}<br><i>${escapeHtml(s.goal || '')}</i></div>
                 <div class="student-actions">
-                    <button class="btn-action btn-confirm" onclick="confirmStudent('${escapeHtml(s.id)}', '${escapeHtml(s.whatsapp)}', '${escapeHtml(s.full_name)}')">✅ Confirmar</button>
-                    <button class="btn-action btn-danger" onclick="deleteStudent('${escapeHtml(s.id)}')">🗑️ Eliminar</button>
-                    <button class="btn-action btn-outline" onclick="addNote('${escapeHtml(s.id)}', '${escapeHtml(s.internal_note || '')}')">📝 Nota</button>
+                    <button class="btn-action btn-confirm" onclick="confirmStudent('${escapeHtml(s.id)}', '${escapeHtml(s.whatsapp)}', '${escapeHtml(s.full_name)}')">✅ Confirmar horario</button>
+                    <div class="student-action-row">
+                        <button class="btn-action whatsapp-toggle" onclick="toggleWhatsappMenu('${escapeHtml(s.id)}')">WhatsApp ▼</button>
+                        <button class="btn-action btn-danger" onclick="deleteStudent('${escapeHtml(s.id)}')">🗑️ Eliminar</button>
+                        <button class="btn-action btn-outline" onclick="addNote('${escapeHtml(s.id)}', '${escapeHtml(s.internal_note || '')}')">📝 Nota</button>
+                    </div>
+                    <div class="whatsapp-menu" id="whatsapp-menu-${escapeHtml(s.id)}">
+                        <button class="btn-action btn-outline" onclick="whatsappAction('${escapeHtml(s.id)}', '${escapeHtml(s.whatsapp)}', '${escapeHtml(s.full_name)}', 'send_options')">Enviar opciones</button>
+                        <button class="btn-action btn-outline" onclick="whatsappAction('${escapeHtml(s.id)}', '${escapeHtml(s.whatsapp)}', '${escapeHtml(s.full_name)}', 'request_more')">Pedir más disponibilidad</button>
+                        <button class="btn-action btn-outline" onclick="whatsappAction('${escapeHtml(s.id)}', '${escapeHtml(s.whatsapp)}', '${escapeHtml(s.full_name)}', 'first_class')">Confirmar primera clase</button>
+                        <button class="btn-action btn-outline" onclick="whatsappAction('${escapeHtml(s.id)}', '${escapeHtml(s.whatsapp)}', '${escapeHtml(s.full_name)}', 'reminder')">Recordatorio</button>
+                        <button class="btn-action btn-outline" onclick="whatsappAction('${escapeHtml(s.id)}', '${escapeHtml(s.whatsapp)}', '${escapeHtml(s.full_name)}', 'reschedule')">Reagendar</button>
+                        <button class="btn-action btn-outline" onclick="whatsappAction('${escapeHtml(s.id)}', '${escapeHtml(s.whatsapp)}', '${escapeHtml(s.full_name)}', 'follow_up')">Seguimiento</button>
+                        <button class="btn-action btn-outline" onclick="whatsappAction('${escapeHtml(s.id)}', '${escapeHtml(s.whatsapp)}', '${escapeHtml(s.full_name)}', 'gentle_reject')">Descartar amable</button>
+                    </div>
                 </div>
             </div>`;
         }).join('');
@@ -358,6 +483,28 @@
             html += `</div>`;
         });
         grid.innerHTML = html;
+    }
+
+    function renderAssignments() {
+        const grid = document.getElementById('assignmentsGrid');
+        if (!grid) return;
+        const assigned = currentSchedule.filter(s => Array.isArray(s.students) && s.students.length > 0);
+        if (assigned.length === 0) {
+            grid.innerHTML = '<div style="text-align:center; color:gray; padding:2rem;">Sin asignaciones todavía</div>';
+            return;
+        }
+        grid.innerHTML = assigned.map(session => `
+            <div class="session-card">
+                <div class="session-time">${escapeHtml(session.day)} ${escapeHtml(session.start_time)} - ${escapeHtml(session.end_time)}</div>
+                <div class="session-mode">${escapeHtml(session.mode)} · Cupo: ${escapeHtml(session.current_students)}/${escapeHtml(session.max_students)}</div>
+                ${session.students.map(st => `
+                    <div style="margin-top:0.5rem;">
+                        <strong>${escapeHtml(st.full_name)}</strong>
+                        <a href="https://wa.me/${encodeURIComponent(String(st.whatsapp || ''))}?text=${encodeURIComponent('Hola, soy tu maestra de Arte del Cantar. Vi tu disponibilidad y quiero confirmar tu horario para clase.')}" target="_blank"> WhatsApp</a>
+                    </div>
+                `).join('')}
+            </div>
+        `).join('');
     }
 
     // Inicializar checkboxes del formulario público
