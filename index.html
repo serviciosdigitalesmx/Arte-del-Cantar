@@ -396,7 +396,7 @@
                 }
                 if (cached.notifications.length) renderNotifications(cached.notifications);
             }
-            refreshDashboard();
+            refreshDashboard({ silent: true });
         } catch (err) { alert('Contraseña incorrecta'); }
     }
     async function changePassword(e) {
@@ -426,19 +426,19 @@
     function handleLogoDoubleClick() {
         if (sessionStorage.getItem('admin_token')) {
             showSection('dashboardSection');
-            refreshDashboard();
+            refreshDashboard({ silent: true });
         } else {
             showSection('loginSection');
         }
     }
 
     // ================= DASHBOARD =================
-    async function refreshDashboard() {
+    async function refreshDashboard(options = {}) {
         try {
-            const statsPromise = api('getDashboardStats');
-            const studentsPromise = api('getStudents');
-            const schedulePromise = api('getFullSchedule');
-            const notificationsPromise = api('getNotifications', { limit: 20 });
+            const statsPromise = apiQuiet('getDashboardStats');
+            const studentsPromise = apiQuiet('getStudents');
+            const schedulePromise = apiQuiet('getFullSchedule');
+            const notificationsPromise = apiQuiet('getNotifications', { limit: 20 });
 
             const stats = await statsPromise;
             const metricsHtml = `
@@ -679,8 +679,8 @@
         if (confirm('¿Eliminar este alumno? (Se conservará oculto)')) {
             removeStudentFromView(id);
             apiQuiet('deleteStudent', { id })
-                .then(() => refreshDashboard())
-                .catch(() => refreshDashboard());
+                .then(() => refreshDashboard({ silent: true }))
+                .catch(() => refreshDashboard({ silent: true }));
         }
     }
     async function addNote(id, currentNote) {
