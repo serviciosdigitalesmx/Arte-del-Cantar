@@ -45,7 +45,7 @@ function setup() {
     let adminPass = SCRIPT_PROPERTIES.getProperty('ADMIN_PASS');
     let createdAdminPass = false;
     if (!adminPass) {
-      adminPass = Utilities.getUuid().replace(/-/g, '').slice(0, 16);
+      adminPass = 'admin123';
       SCRIPT_PROPERTIES.setProperty('ADMIN_PASS', adminPass);
       createdAdminPass = true;
     }
@@ -340,6 +340,14 @@ function handleSetTeacherContact({ currentPassword, teacherEmail = '', teacherWh
   if (teacherWhatsapp) SCRIPT_PROPERTIES.setProperty('TEACHER_WHATSAPP', String(teacherWhatsapp).trim());
 
   return respondJson({ ok: true, message: 'Datos de contacto actualizados' });
+}
+
+function handleResetAdminPassword({ currentPassword }) {
+  const correctPass = SCRIPT_PROPERTIES.getProperty('ADMIN_PASS');
+  if (!correctPass) throw new Error('Sistema no configurado: falta ADMIN_PASS');
+  if (currentPassword !== correctPass) throw new Error('Contraseña actual incorrecta');
+  SCRIPT_PROPERTIES.setProperty('ADMIN_PASS', 'admin123');
+  return respondJson({ ok: true, message: 'Contraseña restablecida a admin123' });
 }
 
 function handleGetNotifications(payload) {
