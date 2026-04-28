@@ -382,6 +382,7 @@
             sessionStorage.setItem('admin_token', res.data.token);
             document.getElementById('adminPass').value = '';
             showSection('dashboardSection');
+            showLoading(false);
             const cached = loadDashboardCache();
             if (cached) {
                 if (cached.metrics) document.getElementById('metrics').innerHTML = cached.metrics;
@@ -472,6 +473,9 @@
                 } catch (innerErr) {}
             });
         } catch(e) {}
+        finally {
+            if (!options.silent) showLoading(false);
+        }
     }
 
     function escapeHtml(value) {
@@ -643,7 +647,7 @@
         const modal = document.getElementById('sessionModal');
         const listDiv = document.getElementById('sessionList');
         listDiv.innerHTML = combos.map((slot, index) => `
-            <div style="padding:1rem; margin:0.5rem 0; background: var(--bg); border-radius:8px; cursor:pointer;" onclick="selectSession('${escapeHtml(id)}', '${escapeHtml(slot.day)}', '${escapeHtml(slot.time)}', '${escapeHtml(phone)}', '${escapeHtml(name)}', '${index}')">
+            <div style="padding:1rem; margin:0.5rem 0; background: var(--bg); border-radius:8px; cursor:pointer;" onclick="selectStudentSlot('${escapeHtml(id)}', '${escapeHtml(slot.day)}', '${escapeHtml(slot.time)}', '${escapeHtml(phone)}', '${escapeHtml(name)}')">
                 <strong>${escapeHtml(slot.day)} · ${escapeHtml(slot.time)}</strong><br>
                 Disponible desde el formulario
             </div>
@@ -651,7 +655,7 @@
         modal.style.display = 'flex';
     }
 
-    window.selectSession = async function(studentId, day, time, phone, name) {
+    window.selectStudentSlot = async function(studentId, day, time, phone, name) {
         closeModal();
         try {
             const student = getStudentById(studentId);
