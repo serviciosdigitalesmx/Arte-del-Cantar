@@ -557,6 +557,11 @@
         }).join('');
     }
 
+    function removeStudentFromView(id) {
+        currentStudents = currentStudents.filter(s => s.id !== id);
+        renderStudentsGrid();
+    }
+
     async function confirmStudent(id, phone, name) {
         const student = getStudentById(id);
         const avail = getAvailability(student);
@@ -607,14 +612,20 @@
 
     async function deleteStudent(id) {
         if (confirm('¿Eliminar este alumno? (Se conservará oculto)')) {
-            await api('deleteStudent', { id });
-            refreshDashboard();
+            removeStudentFromView(id);
+            api('deleteStudent', { id })
+                .then(() => refreshDashboard())
+                .catch(() => refreshDashboard());
         }
     }
     async function addNote(id, currentNote) {
         const note = prompt('Nota interna:', currentNote);
-        if (note !== null) await api('updateStudent', { id, updates: { internal_note: note } });
-        refreshDashboard();
+        if (note !== null) {
+            await api('updateStudent', { id, updates: { internal_note: note } });
+            const student = currentStudents.find(s => s.id === id);
+            if (student) student.internal_note = note;
+            renderStudentsGrid();
+        }
     }
 
     function renderCalendar() {
