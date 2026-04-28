@@ -75,6 +75,7 @@ function doPost(e) {
     if (action === 'setup') return setup();
     if (action === 'createStudentRequest') return handleCreateStudentRequest(payload);
     if (action === 'login') return handleLogin(payload);
+    if (action === 'setAdminPassword') return handleSetAdminPassword(payload);
     if (action === 'getPublicSessions') {
       const sessions = getAllRecords('sessions').filter(s => s.is_active === true && s.deleted !== true);
       return respondJson({ ok: true, data: sessions });
@@ -89,7 +90,6 @@ function doPost(e) {
       case 'getSessions': return respondJson({ ok: true, data: getAllRecords('sessions') });
       case 'getAvailableSessions': return handleGetAvailableSessions();
       case 'getFullSchedule': return handleGetFullSchedule();
-      case 'setAdminPassword': return handleSetAdminPassword(payload);
       case 'updateStudent': return handleUpdateStudent(payload);
       case 'deleteStudent': return handleDeleteStudent(payload);
       case 'bulkImport': return handleBulkImport(payload);
